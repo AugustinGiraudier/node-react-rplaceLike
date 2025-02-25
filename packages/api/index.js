@@ -1,7 +1,10 @@
 const express = require('express');
+const dotenv = require('dotenv');
 const cors = require('cors');
+const connectDB = require('./config/db');
 
-const api = require('./api');
+dotenv.config();
+connectDB();
 
 const app = express();
 const port = 8000;
@@ -9,13 +12,10 @@ const port = 8000;
 app.use(cors()); //autorise le CORS
 app.use(express.json());
 
-app.get('/', (req, res) => { // GET SUR localhost:8000/
-	res.json('Hello World!');
-});
 
-app.use('/api', api);
+// use App middlewares
+
 
 app.listen(port, () => {
-	// eslint-disable-next-line no-console
 	console.log(`Server listening on ${port}`);
 });
