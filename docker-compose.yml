@@ -1,6 +1,6 @@
 version: '3.8'
 services:
-  mongo:
+  mongodb:
     image: mongo:6.0
     container_name: mongo_container
     ports:

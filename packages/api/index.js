@@ -1,7 +1,11 @@
 const express = require('express');
+const dotenv = require('dotenv');
 const cors = require('cors');
-
 const api = require('./api');
+const connectDB = require('./config/db');
+
+dotenv.config();
+connectDB();
 
 const app = express();
 const port = 8000;
@@ -16,6 +20,5 @@ app.get('/', (req, res) => { // GET SUR localhost:8000/
 app.use('/api', api);
 
 app.listen(port, () => {
-	// eslint-disable-next-line no-console
 	console.log(`Server listening on ${port}`);
 });
