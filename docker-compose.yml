@@ -1,12 +1,17 @@
-version: '3.8'
 services:
   mongodb:
-    image: mongo:6.0
-    container_name: mongo_container
+    image: mongo:latest
+    container_name: mongodb
+    restart: always
     ports:
       - "27017:27017"
     volumes:
-      - mongo_data:/data/db
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mbds
+      - MONGO_INITDB_ROOT_PASSWORD=mbds
+      - MONGO_INITDB_DATABASE=rplace
 
 volumes:
-  mongo_data:
+  mongodb_data:
+    driver: local
