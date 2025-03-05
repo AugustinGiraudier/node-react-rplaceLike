@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema(
 		},
 		lastPixelPlacedAt: {
 			type: Date,
-			default: Date.now,
+			default: null,
 		},
 	},
 	{ timestamps: true }
