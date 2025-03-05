@@ -30,6 +30,14 @@ const userSchema = new mongoose.Schema(
 			type: String,
 			default: "",
 		},
+		pixelsPlaced: {
+			type: Number,
+			default: 0,
+		},
+		lastPixelPlacedAt: {
+			type: Date,
+			default: Date.now,
+		},
 	},
 	{ timestamps: true }
 );
