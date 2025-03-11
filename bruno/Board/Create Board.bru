@@ -1,0 +1,21 @@
+meta {
+  name: Create Board
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8001/api/boards
+  body: json
+  auth: none
+}
+
+body:json {
+    {
+      "name": "Test2",
+      "author": "67d0461b97155cfb09ed84a4",
+      "width": 512,
+      "height": 512,
+      "placementDelay": 3000
+    }
+}

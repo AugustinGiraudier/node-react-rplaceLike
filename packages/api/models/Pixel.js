@@ -6,4 +6,4 @@ const pixelSchema = new mongoose.Schema({
 	timestamp: { type: Date, default: null }
 }, { _id: false }); // Pas besoin d'ID pour chaque pixel individuel
 
-module.exports = mongoose.model("Pixel", pixelSchema);
+module.exports = pixelSchema;

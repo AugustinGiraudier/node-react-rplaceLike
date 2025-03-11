@@ -7,14 +7,13 @@ const pixelBoardSchema = new mongoose.Schema({
 	endingDate: { type: Date, default: null },
 	status: {
 		type: String,
-		enum: ['creating', 'active', 'finished'],
+		enum: ['creating', 'active', 'non-active', 'finished'],
 		default: 'creating'
 	},
 	width: { type: Number, required: true },
 	height: { type: Number, required: true },
 	chunkSize: { type: Number, required: true },
 	placementDelay: { type: Number, required: true },
-	mod: { type: Boolean, default: false },
 	// Référence aux chunks plutôt que les inclure directement
 	chunks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chunk' }]
 });

@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 const pixelSchema = require("./Pixel");
 
 const chunkSchema = new mongoose.Schema({
-	boardId: { type: mongoose.Schema.Types.ObjectId, ref: "PixelBoard", required: true },
 	x: { type: Number, required: true },
 	y: { type: Number, required: true },
 	pixels: [[pixelSchema]],
