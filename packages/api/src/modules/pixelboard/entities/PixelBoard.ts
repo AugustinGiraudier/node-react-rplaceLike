@@ -1,5 +1,3 @@
-import {Chunk} from "./Chunk";
-
 export interface PixelBoard {
 	id?: string;
 	title: string;
