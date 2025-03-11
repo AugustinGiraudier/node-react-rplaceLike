@@ -6,6 +6,11 @@ exports.register = async (req, res) => {
 	try {
 		const { username, email, password } = req.body;
 
+		// Vérifie que tout les champs sont présents
+		if (!username || !email || !password) {
+			return res.status(400).json({ message: "All fields are required" });
+		}
+
 		// Vérifier si l'utilisateur existe déjà
 		const userExists = await User.findOne({
 			$or: [{ email }, { username }],
@@ -43,6 +48,11 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
 	try {
 		const { email, password } = req.body;
+
+		// Vérifie que tout les champs sont présents
+		if (!email || !password) {
+			return res.status(400).json({ message: "All fields are required" });
+		}
 
 		// Vérifier si l'utilisateur existe
 		const user = await User.findOne({ email });
