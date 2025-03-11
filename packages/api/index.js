@@ -2,8 +2,8 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
-const { register, login } = require("./controllers/authController");
 const boardRoutes = require("./routes/board.routes");
+const authRoutes = require("./routes/auth.routes");
 
 dotenv.config();
 connectDB();
@@ -14,16 +14,13 @@ const port = 8001;
 app.use(cors()); //autorise le CORS
 app.use(express.json());
 
-// use App middlewares
+// custom routes
 app.use('/api/boards', boardRoutes);
+app.use('/api/auth', authRoutes);
 
 app.listen(port, () => {
 	console.log(`Server listening on ${port}`);
 });
 
-app.get("/", (req, res) => {
-	res.send("Hello World");
-});
 
-app.post("/register", register);
-app.post("/login", login);
+
