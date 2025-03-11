@@ -1,7 +1,7 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const pixelBoardSchema = new mongoose.Schema({
-	title: { type: String, required: true },
+	name: { type: String, required: true },
 	author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 	creationDate: { type: Date, default: Date.now },
 	endingDate: { type: Date, default: null },
@@ -26,4 +26,4 @@ pixelBoardSchema.index({ status: 1, creationDate: -1 });
 // Index pour trier par date de fin (utile pour afficher les boards qui terminent bientôt)
 pixelBoardSchema.index({ status: 1, endingDate: 1 });
 
-export default mongoose.model('PixelBoard', pixelBoardSchema);
+module.exports = mongoose.model("PixelBoard", pixelBoardSchema);

@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const pixelSchema = new mongoose.Schema({
 	color: { type: String, required: true, default: '#FFFFFF' },
@@ -6,4 +6,4 @@ const pixelSchema = new mongoose.Schema({
 	timestamp: { type: Date, default: null }
 }, { _id: false }); // Pas besoin d'ID pour chaque pixel individuel
 
-export default mongoose.model('Pixel', pixelSchema);
+module.exports = mongoose.model("Pixel", pixelSchema);
