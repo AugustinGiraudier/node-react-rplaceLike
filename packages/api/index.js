@@ -4,6 +4,7 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 const boardRoutes = require("./routes/board.routes");
 const authRoutes = require("./routes/auth.routes");
+const testRoutes = require("./routes/auth.tests.routes");
 
 dotenv.config();
 connectDB();
@@ -18,9 +19,15 @@ app.use(express.json());
 app.use('/api/boards', boardRoutes);
 app.use('/api/auth', authRoutes);
 
+
+/* ---- TESTS Auth and Admin perms ---- */
+app.use('/tests', testRoutes);
+/* ------------------------------------ */
+
+
 app.listen(port, () => {
 	console.log(`Server listening on ${port}`);
 });
 
 
-
+	
