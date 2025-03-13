@@ -227,7 +227,6 @@ const updatePixel = async (boardId, x, y, color, userId) => {
 		{ $set: { color, userId, timestamp: new Date() }},
 		{ upsert: true }
 	);
-
 	return { x, y, color, userId };
 };
 // ----------- ADMIN -------------
