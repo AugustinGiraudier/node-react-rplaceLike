@@ -58,3 +58,13 @@ exports.deleteBoard = async (req, res) => {
 		res.status(500).json({ message: 'Server error : ' + error });
 	}
 };
+
+exports.boardTimeLeft = async (req, res) => {
+	try {
+		const { boardId } = req.body;
+		const timeLeft = await BoardService.boardTimeLeft(boardId);
+		res.json(timeLeft);
+	} catch (error) {
+		res.status(500).json({ message: 'Server error : ' + error });
+	}
+};

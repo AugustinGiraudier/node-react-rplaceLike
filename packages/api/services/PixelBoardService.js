@@ -245,7 +245,9 @@ const createBoard = async (data) => {
 	if (!data.width || !(data.width % 16 === 0)) throw new Error("Width must be a multiple of 16");
 	if (!data.height || !(data.height % 16 === 0)) throw new Error("Height must be a multiple of 16");
 	if (!data.placementDelay || data.placementDelay < 0) throw new Error("Placement delay is required");
-
+	/*
+	 * Ending date est optionnel mais si elle est set on ajoute sa valeur en jour : now + endingDate
+	 */
 	const board = new PixelBoard({
 		name: data.name,
 		author: data.author,
@@ -254,6 +256,7 @@ const createBoard = async (data) => {
 		chunkSize: 16,
 		placementDelay: data.placementDelay,
 		status: 'creating',
+		endingDate: data.endingDate ? new Date(new Date().getTime() + data.endingDate * 24 * 60 * 60 * 1000) : null,
 		chunks: []
 	});
 
@@ -315,4 +318,44 @@ const deleteBoard = async (boardId) => {
 	}
 };
 
-module.exports = { getAllBoards, createBoard, getRegion, getChunk, updatePixel,deleteBoard };
+/**
+ * Récupère le temps restant pour un board
+ * @param boardId
+ * @returns {Promise<{timeleft: {days: number, hours: number, minutes: number}, status: string}>}
+ */
+const boardTimeLeft = async (boardId) => {
+	try {
+		const board = await PixelBoard.findById(boardId);
+		if (!board) throw new Error("Board not found");
+
+		if (board.endingDate == null){
+			return {
+				timeleft : "Infinite",
+				status: board.status
+			};
+		}
+		const now = new Date();
+		const timeLeft = board.endingDate - now;
+
+		if (timeLeft <= 0) {
+			console.log(`Board ${boardId} is finished`);
+			board.status = 'finished';
+			await board.save();
+		}
+
+		return {
+			timeleft : {
+				days: Math.floor(timeLeft / (24 * 60 * 60 * 1000)),
+				hours: Math.floor((timeLeft % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)),
+				minutes: Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000))
+			},
+			status: board.status
+		};
+
+	} catch (error) {
+		console.error(`Error while getting time left ${boardId}:`, error);
+		throw error;
+	}
+};
+
+module.exports = { getAllBoards, createBoard, getRegion, getChunk, updatePixel,deleteBoard,boardTimeLeft };
