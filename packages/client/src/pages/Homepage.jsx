@@ -18,17 +18,14 @@ function Homepage() {
 		const fetchData = async () => {
 			setLoading(true);
 			try {
-				// Fetch statistics
 				const statsResponse = await fetch(`${VITE_API_URL}/stats`);
 				const statsData = await statsResponse.json();
 				setStats(statsData);
 
-				// Fetch active boards
 				const activeBoardsResponse = await fetch(`${VITE_API_URL}/pixelboards/active`);
 				const activeBoardsData = await activeBoardsResponse.json();
 				setActiveBoards(activeBoardsData);
 
-				// Fetch completed boards
 				const completedBoardsResponse = await fetch(`${VITE_API_URL}/pixelboards/completed`);
 				const completedBoardsData = await completedBoardsResponse.json();
 				setCompletedBoards(completedBoardsData);
@@ -111,27 +108,6 @@ function Homepage() {
 					</section>
 				</>
 			)}
-
-			<section className="about-section">
-				<h2>How It Works</h2>
-				<div className="steps">
-					<div className="step">
-						<div className="step-number">1</div>
-						<h3>Register or Log In</h3>
-						<p>Create an account to start participating in collaborative pixel art</p>
-					</div>
-					<div className="step">
-						<div className="step-number">2</div>
-						<h3>Choose a Canvas</h3>
-						<p>Join an active PixelBoard or browse completed artworks</p>
-					</div>
-					<div className="step">
-						<div className="step-number">3</div>
-						<h3>Place Your Pixel</h3>
-						<p>Add one pixel every few minutes and watch the artwork evolve</p>
-					</div>
-				</div>
-			</section>
 		</div>
 	);
 }

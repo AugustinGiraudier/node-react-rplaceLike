@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
 const {register, login} = require("./controllers/authController");
+const {getStats} = require("./controllers/statsController");
 
 dotenv.config();
 connectDB()
@@ -24,3 +25,4 @@ app.get("/", (req, res) => {
 
 app.post("/register", register);
 app.post("/login", login);
+app.get("/stats", getStats);
