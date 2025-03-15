@@ -173,57 +173,6 @@
   color: #e74c3c;
 }
 
-.about-section {
-  margin: 60px 0;
-  padding: 40px 0;
-  background-color: #f8f9fa;
-  border-radius: 10px;
-}
-
-.about-section h2 {
-  text-align: center;
-  margin-bottom: 30px;
-  color: #333;
-}
-
-.steps {
-  display: flex;
-  justify-content: space-around;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
-.step {
-  flex: 1;
-  min-width: 250px;
-  text-align: center;
-  padding: 20px;
-}
-
-.step-number {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 50px;
-  height: 50px;
-  margin: 0 auto 15px;
-  background-color: #3498db;
-  color: white;
-  border-radius: 50%;
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
-.step h3 {
-  margin: 10px 0;
-  color: #333;
-}
-
-.step p {
-  color: #666;
-  font-size: 0.95rem;
-}
-
 @media (max-width: 768px) {
   .hero-section {
     padding: 40px 0;
@@ -241,15 +190,6 @@
 
   .stat-card {
     width: 100%;
-    max-width: 300px;
-  }
-
-  .steps {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .step {
     max-width: 300px;
   }
 }
