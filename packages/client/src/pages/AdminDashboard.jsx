@@ -1,6 +1,6 @@
 import {useState, useEffect} from 'react';
 import {Navigate} from 'react-router-dom';
-import './AdminDashboard.css';
+import '../styles/AdminDashboard.css';
 
 const {VITE_API_URL} = import.meta.env;
 

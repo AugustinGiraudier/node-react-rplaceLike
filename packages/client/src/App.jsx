@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import Navigation from './components/Navigation'
+import Navigation from './pages/Navigation'
 import './App.css';
 
 function App() {
@@ -8,7 +8,7 @@ function App() {
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
-    
+
     if (savedTheme === 'dark') {
       setDarkMode(true);
     } else if (savedTheme === 'light') {

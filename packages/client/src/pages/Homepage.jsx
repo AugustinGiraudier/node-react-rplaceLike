@@ -1,6 +1,6 @@
 import {useState, useEffect} from 'react';
 import {Link} from 'react-router-dom';
-import './Homepage.css';
+import '../styles/Homepage.css';
 
 const {VITE_API_URL} = import.meta.env;
 
