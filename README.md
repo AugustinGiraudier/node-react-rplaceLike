@@ -1,5 +1,5 @@
 <p align="center">
-<img alt="DataHub" src="https://images.seeklogo.com/logo-png/43/2/reddit-r-place-logo-png_seeklogo-437003.png" height="160px" />
+<img alt="DataHub" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFIkq-WsefNGX4YRNIy9Qy7sb582r6bpPdzg&s" height="160px" />
 </p>
 <h1 align="center"> RPlaceLike </h1>
 
