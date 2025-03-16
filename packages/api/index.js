@@ -2,11 +2,11 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
-const {register, login} = require("./controllers/authController");
+const {register, login, updateUser} = require("./controllers/authController");
 const {getStats} = require("./controllers/statsController");
 
 dotenv.config();
-connectDB()
+connectDB();
 const app = express();
 const port = 8000;
 
@@ -25,4 +25,5 @@ app.get("/", (req, res) => {
 
 app.post("/register", register);
 app.post("/login", login);
+app.patch("/user/:id", updateUser);
 app.get("/stats", getStats);
