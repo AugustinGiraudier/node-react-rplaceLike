@@ -39,7 +39,7 @@ function Register() {
 			// On n'envoie pas confirmPassword à l'API
 			const {confirmPassword, ...dataToSend} = formData;
 
-			const response = await fetch(`${VITE_API_URL}/register`, {
+			const response = await fetch(`${VITE_API_URL}/auth/register`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
