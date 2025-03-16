@@ -27,7 +27,7 @@ function Login() {
 		setError('');
 
 		try {
-			const response = await fetch(`${VITE_API_URL}/login`, {
+			const response = await fetch(`${VITE_API_URL}/auth/login`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
