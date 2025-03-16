@@ -6,6 +6,15 @@ function Profile() {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [formError, setFormError] = useState('');
+  const [success, setSuccess] = useState('');
   const [contributions, setContributions] = useState({
     totalPixels: 0,
     pixelBoards: []
@@ -23,6 +32,12 @@ function Profile() {
     try {
       const parsedUser = JSON.parse(userFromStorage);
       setUserData(parsedUser);
+      setFormData({
+        username: parsedUser.username,
+        email: parsedUser.email,
+        password: '',
+        confirmPassword: ''
+      });
 
       fetchUserContributions(parsedUser.id, token);
     } catch (err) {
@@ -37,7 +52,6 @@ function Profile() {
     // const { VITE_API_URL } = import.meta.env;
 
     try {
-      // Donne fictive - attendre que khelil ait finit d'implémenter la partie api
       // const response = await fetch(`${VITE_API_URL}/users/${userId}/contributions`, {
       //   headers: { Authorization: `Bearer ${token}` }
       // });
@@ -53,6 +67,108 @@ function Profile() {
       }, 500);
     } catch (err) {
       console.error('Error fetching user contributions:', err);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const toggleEdit = () => {
+    setIsEditing(!isEditing);
+    setFormError('');
+    setSuccess('');
+
+    if (isEditing && userData) {
+      setFormData({
+        username: userData.username,
+        email: userData.email,
+        password: '',
+        confirmPassword: ''
+      });
+    }
+  };
+
+  const validateForm = () => {
+    if (formData.password && formData.password !== formData.confirmPassword) {
+      setFormError("Passwords don't match");
+      return false;
+    }
+
+    if (formData.password && formData.password.length < 6) {
+      setFormError("Password must be at least 6 characters");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setFormError('');
+    setSuccess('');
+
+    if (!validateForm()) {
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token || !userData) {
+      setFormError('Authentication required');
+      return;
+    }
+
+    const updateData = {};
+    if (formData.username && formData.username !== userData.username) updateData.username = formData.username;
+    if (formData.email && formData.email !== userData.email) updateData.email = formData.email;
+    if (formData.password) updateData.password = formData.password;
+
+    if (Object.keys(updateData).length === 0) {
+      setSuccess('No changes to save');
+      setIsEditing(false);
+      return;
+    }
+
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || '';
+      const response = await fetch(`${apiUrl}/user/${userData.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(updateData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update profile');
+      }
+
+      const updatedUser = {
+        ...userData,
+        ...data.user
+      };
+
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUserData(updatedUser);
+      setFormData({
+        username: updatedUser.username,
+        email: updatedUser.email,
+        password: '',
+        confirmPassword: ''
+      });
+
+      setSuccess('Profile updated successfully');
+      setIsEditing(false);
+    } catch (err) {
+      setFormError(err.message || 'Error updating profile');
+      console.error('Error updating profile:', err);
     }
   };
 
@@ -73,24 +189,90 @@ function Profile() {
               {userData.username ? userData.username.charAt(0).toUpperCase() : '?'}
             </div>
             <h1>My Profile</h1>
+            {!isEditing && (
+              <button className="edit-profile-btn" onClick={toggleEdit}>
+                Edit Profile
+              </button>
+            )}
           </div>
+
+          {success && <div className="success-message">{success}</div>}
+          {formError && <div className="error-message">{formError}</div>}
 
           <div className="profile-card">
             <h2>Account Information</h2>
-            <div className="profile-info">
-              <div className="info-item">
-                <span className="info-label">Username:</span>
-                <span className="info-value">{userData.username}</span>
+
+            {isEditing ? (
+              <form className="edit-form" onSubmit={handleSubmit}>
+                <div className="form-group">
+                  <label htmlFor="username">Username:</label>
+                  <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    value={formData.username}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="email">Email:</label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="password">New Password (leave blank to keep current):</label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    placeholder="Leave blank to keep current password"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="confirmPassword">Confirm New Password:</label>
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    placeholder="Confirm new password"
+                  />
+                </div>
+
+                <div className="form-buttons">
+                  <button type="submit" className="save-btn">Save Changes</button>
+                  <button type="button" className="cancel-btn" onClick={toggleEdit}>Cancel</button>
+                </div>
+              </form>
+            ) : (
+              <div className="profile-info">
+                <div className="info-item">
+                  <span className="info-label">Username:</span>
+                  <span className="info-value">{userData.username}</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">Email:</span>
+                  <span className="info-value">{userData.email}</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">Account ID:</span>
+                  <span className="info-value">{userData.id}</span>
+                </div>
               </div>
-              <div className="info-item">
-                <span className="info-label">Email:</span>
-                <span className="info-value">{userData.email}</span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">Account ID:</span>
-                <span className="info-value">{userData.id}</span>
-              </div>
-            </div>
+            )}
           </div>
 
           <div className="profile-card">
