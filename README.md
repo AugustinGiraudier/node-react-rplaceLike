@@ -1,5 +1,5 @@
 <p align="center">
-<img alt="DataHub" src="https://www.miage.fr/wp-content/uploads/2020/11/MIAGE_50ans_MIAGE-50ans_COULEURS.png" height="160px" />
+<img alt="DataHub" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFIkq-WsefNGX4YRNIy9Qy7sb582r6bpPdzg&s" height="160px" />
 </p>
 <h1 align="center"> RPlaceLike </h1>
 

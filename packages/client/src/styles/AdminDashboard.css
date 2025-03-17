@@ -1,0 +1,29 @@
+.admin-dashboard {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 20px;
+}
+
+.admin-dashboard h1 {
+	margin-bottom: 30px;
+	color: #333;
+}
+
+.admin-tabs {
+	display: flex;
+	border-bottom: 1px solid #e1e1e1;
+	margin-bottom: 30px;
+	overflow-x: auto;
+}
+
+.admin-tab {
+	padding: 10px 20px;
+	font-size: 1rem;
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: #666;
+	font-weight: 500;
+	margin-right: 5px;
+	transition: all 0.3s ease;
+}

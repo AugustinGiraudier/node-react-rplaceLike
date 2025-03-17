@@ -1,0 +1,17 @@
+meta {
+  name: Delete Board
+  type: http
+  seq: 6
+}
+
+delete {
+  url: http://localhost:8001/boards/delete
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "boardId":"67d2dcd481a4a57a96cc5a54"
+  }
+}
