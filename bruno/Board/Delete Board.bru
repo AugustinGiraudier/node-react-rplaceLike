@@ -4,8 +4,14 @@ meta {
   seq: 6
 }
 
-get {
-  url: http://localhost:8001/api/boards/delete
-  body: none
+delete {
+  url: http://localhost:8001/boards/delete
+  body: json
   auth: none
+}
+
+body:json {
+  {
+    "boardId":"67d2dcd481a4a57a96cc5a54"
+  }
 }
