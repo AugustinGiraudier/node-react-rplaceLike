@@ -9,6 +9,7 @@
 	"private": true,
 	"devDependencies": {
 		"@eslint/js": "^9.19.0",
+		"@types/node": "^22.13.10",
 		"eslint": "^9.19.0"
 	},
 	"workspaces": [

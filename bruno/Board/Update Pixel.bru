@@ -1,0 +1,21 @@
+meta {
+  name: Update Pixel
+  type: http
+  seq: 5
+}
+
+post {
+  url: http://localhost:8001/boards/update
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "boardId": "67d2c0a85b043d617ae59d31",
+    "pixelX" : 1,
+    "pixelY": 1,
+    "color":"#E50000",
+    "userId": "67d2b660212cdceef2f79a9e"
+  }
+}

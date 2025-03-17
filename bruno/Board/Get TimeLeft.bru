@@ -1,0 +1,17 @@
+meta {
+  name: Get TimeLeft
+  type: http
+  seq: 7
+}
+
+get {
+  url: http://localhost:8001/boards/timeleft
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "boardId": "67d2dec2e5d68f2cfe6b6539"
+  }
+}

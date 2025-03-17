@@ -1,4 +1,4 @@
-const User = require("../models/user");
+const User = require("../models/User");
 
 const getStats = async () => {
     const userCount = await User.countDocuments();

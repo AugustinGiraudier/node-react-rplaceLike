@@ -7,7 +7,7 @@ handle the incoming requests and send the response back to the client, use the s
 - services (controllers) :
 handle the business logic, use the models to interact with the database
 
-- index.js
+- index.ts
 entry point of the API, launch the express server
 
 - api.js

@@ -3,9 +3,10 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
 
-const authRoutes = require("./routes/authRoutes");
-const userRoutes = require("./routes/userRoutes");
-const statsRoutes = require("./routes/statsRoutes");
+const boardRoutes = require("./routes/board.routes");
+const authRoutes = require("./routes/auth.routes");
+const userRoutes = require("./routes/user.routes");
+const statsRoutes = require("./routes/stats.routes");
 
 dotenv.config();
 connectDB();
@@ -16,10 +17,10 @@ const port = process.env.PORT || 8000;
 app.use(cors());
 app.use(express.json());
 
-app.get("/", (req, res) => res.send("Hello World"));
-
+// custom routes :
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/stats", statsRoutes);
+app.use('/boards', boardRoutes);
 
 app.listen(port, () => console.log(`🚀 Server running on port ${port}`));
