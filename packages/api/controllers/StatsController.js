@@ -5,6 +5,6 @@ exports.getStats = async (req, res) => {
 		const stats = await getStats();
 		res.json(stats);
 	} catch (error) {
-		res.status(500).json({message: "Failed to fetch statistics"});
+		res.status(500).json({message: "Failed to fetch statistics : " + error});
 	}
 };

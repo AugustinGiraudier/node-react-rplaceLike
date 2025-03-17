@@ -13,7 +13,7 @@ exports.register = async (req, res) => {
 			user: {id: user._id, username: user.username, email: user.email},
 		});
 	} catch (error) {
-		res.status(500).json({message: error.message});
+		res.status(500).json({message: "Failed to register user" + error});
 	}
 };
 
@@ -30,6 +30,6 @@ exports.login = async (req, res) => {
 			user: {id: user._id, username: user.username, email: user.email},
 		});
 	} catch (error) {
-		res.status(500).json({message: error.message});
+		res.status(500).json({message: "Failed to login user" + error});
 	}
 };
