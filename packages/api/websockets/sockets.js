@@ -1,13 +1,9 @@
 
 const PixelBoardService = require('../services/PixelBoardService');
 
-// Variable pour stocker l'instance io (accessible dans ce module uniquement)
 let ioInstance;
 
 const sockets = (io) => {
-
-
-	// Stocker l'instance pour pouvoir l'utiliser ailleurs dans ce fichier
 	ioInstance = io;
 
 	console.log('Socket server started');
@@ -15,10 +11,8 @@ const sockets = (io) => {
 	io.on('connection', (socket) => {
 		console.log('User connected:', socket.id);
 
-		// Rejoindre un tableau spécifique
 		socket.on('join-board', async (boardId) => {
 			try {
-				// Quitter les autres salles de tableaux si nécessaire
 				socket.rooms.forEach(room => {
 					if (room.startsWith('board:')) {
 						socket.leave(room);
@@ -31,9 +25,8 @@ const sockets = (io) => {
 				socket.emit('message', `Joined board ${boardId}`);
 				console.log(`User ${socket.id} joined ${roomName}`);
 
-				// Optionnel: envoyer les données initiales du tableau au client
 				try {
-					// Vous pourriez chercher une région initiale, par exemple 32x32 pixels
+					// Zone de base de 32x32 a changer pour le board entier en passant en paramètre les dimensions de la region / board
 					const initialData = await PixelBoardService.getRegion(boardId, 0, 0, 32, 32);
 					socket.emit('board-data', initialData);
 				} catch (error) {
@@ -51,13 +44,13 @@ const sockets = (io) => {
 			try {
 				console.log('Pixel placement request:', data);
 
-				// Valider les données
+
 				if (!data.boardId || data.x === undefined || data.y === undefined || !data.color) {
 					throw new Error('Missing required pixel data');
 				}
 
 				// Mettre à jour le pixel dans la base de données
-				const result = await PixelBoardService.updatePixel(
+				await PixelBoardService.updatePixel(
 					data.boardId,
 					data.x,
 					data.y,
@@ -94,11 +87,12 @@ const sockets = (io) => {
 		});
 	});
 
-	return io; // Retourner l'instance io
+	return io;
 };
 
 // Fonction utilitaire pour obtenir l'instance io depuis d'autres fichiers
-// Note: Cette fonction ne sera PAS utilisée car nous avons retiré l'émission d'événements du service
+// Note: J'en avais besoin au début mais plus maintenant mais je garde au cas où
+//eslint-disable-next-line
 const getIO = () => {
 	if (!ioInstance) {
 		throw new Error('Socket.io not initialized');
@@ -107,5 +101,4 @@ const getIO = () => {
 };
 
 module.exports = sockets;
-// Exporter aussi getIO si nécessaire plus tard
 // module.exports.getIO = getIO;

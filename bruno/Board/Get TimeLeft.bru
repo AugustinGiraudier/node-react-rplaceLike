@@ -6,6 +6,12 @@ meta {
 
 get {
   url: http://localhost:8001/api/boards/timeleft
-  body: none
+  body: json
   auth: none
+}
+
+body:json {
+  {
+    "boardId": "67d2dec2e5d68f2cfe6b6539"
+  }
 }
