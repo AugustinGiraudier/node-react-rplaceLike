@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import Navigation from './pages/Navigation'
+import Navigation from './pages/Navigation';
 import './App.css';
 
 function App() {
