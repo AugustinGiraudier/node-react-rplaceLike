@@ -16,7 +16,6 @@ function AdminDashboard() {
 	useEffect(() => {
 		const checkAdminStatus = async () => {
 			const token = localStorage.getItem('token');
-			const userData = JSON.parse(localStorage.getItem('user') || '{}');
 
 			if (!token) {
 				setIsAdmin(false);
@@ -25,17 +24,13 @@ function AdminDashboard() {
 			}
 
 			try {
-				// Verify admin status with the API
-				const response = await fetch(`${VITE_API_URL}/users/me`, {
+				const response = await fetch(`${VITE_API_URL}/admin/check-access`, {
 					headers: {
 						Authorization: `Bearer ${token}`
 					}
 				});
 
-				if (!response.ok) throw new Error('Failed to verify admin status');
-
-				const data = await response.json();
-				setIsAdmin(data.role === 'admin');
+				setIsAdmin(response.ok);
 			} catch (err) {
 				console.error('Error checking admin status:', err);
 				setIsAdmin(false);
@@ -59,21 +54,37 @@ function AdminDashboard() {
 
 		try {
 			if (activeTab === 'overview' || activeTab === 'stats') {
-				const statsResponse = await fetch(`${VITE_API_URL}/admin/stats`, {
+				// Changed from /stats/getStats to /stats/ to match your backend route
+				const statsResponse = await fetch(`${VITE_API_URL}/stats/`, {
 					headers: {Authorization: `Bearer ${token}`}
 				});
 				if (!statsResponse.ok) throw new Error('Failed to fetch stats');
 				const statsData = await statsResponse.json();
-				setStats(statsData);
+
+				// Map backend data to frontend expected structure
+				setStats({
+					totalUsers: statsData.userCount || 0,
+					activeUsers: 0, // Not provided by backend yet
+					totalBoards: statsData.boardCount || 0,
+					activeBoards: 0, // Not provided by backend yet
+					newUsers: 0,     // Not provided by backend yet
+					completedBoards: 0, // Not provided by backend yet
+					totalPixelsPlaced: statsData.pixelCount || 0, // Not provided by backend yet
+					avgPixelsPerUser: 0   // Not provided by backend yet
+				});
 			}
 
 			if (activeTab === 'users') {
-				const usersResponse = await fetch(`${VITE_API_URL}/admin/users`, {
+				// Changed from /user/getUsers to /user/ to match your backend route
+				const usersResponse = await fetch(`${VITE_API_URL}/user/`, {
 					headers: {Authorization: `Bearer ${token}`}
 				});
 				if (!usersResponse.ok) throw new Error('Failed to fetch users');
 				const usersData = await usersResponse.json();
-				setUsers(usersData);
+
+				// The backend returns { success: true, users: [...] }
+				// So we need to access the users array inside
+				setUsers(usersData.users || []);
 			}
 
 			if (activeTab === 'pixelboards') {
