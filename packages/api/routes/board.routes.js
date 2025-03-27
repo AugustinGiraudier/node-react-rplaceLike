@@ -1,9 +1,10 @@
 const express = require('express');
-const { getBoards, createBoard,getChunk,getRegion,updatePixel,deleteBoard,boardTimeLeft } = require('../controllers/PixelBoardController');
+const { getBoards, getBoard, createBoard,getChunk,getRegion,updatePixel,deleteBoard,boardTimeLeft } = require('../controllers/PixelBoardController');
 
 const router = express.Router();
 
 router.get('/', getBoards);
+router.get('/:boardId', getBoard);
 router.post('/', createBoard);
 router.get('/region/:boardId/:startX/:startY/:width/:height', getRegion);
 router.get('/chunk/:boardId/:pixelX/:pixelY', getChunk);

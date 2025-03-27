@@ -2,8 +2,18 @@ const BoardService = require('../services/PixelBoardService');
 
 exports.getBoards = async (req, res) => {
 	try {
-		const users = await BoardService.getAllBoards();
-		res.json(users);
+		const boards = await BoardService.getAllBoards();
+		res.json(boards);
+	} catch (error) {
+		res.status(500).json({ message: 'Server error : ' + error });
+	}
+};
+
+exports.getBoard = async (req, res) => {
+	try {
+		const { boardId } = req.params;
+		const board = await BoardService.getBoard(boardId);
+		res.json(board);
 	} catch (error) {
 		res.status(500).json({ message: 'Server error : ' + error });
 	}

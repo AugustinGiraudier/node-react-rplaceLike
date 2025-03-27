@@ -24,7 +24,17 @@ const COLOR_INDEX = {
  * @returns {Promise<Array>} - Liste des boards
  */
 const getAllBoards = async () => {
-	return PixelBoard.find({});
+	return PixelBoard.find({}, {
+		chunks: 0
+	}).populate('author', "username");
+};
+
+/**
+ * Récupère un board avec son id
+ * @returns {Promise} - info board
+ */
+const getBoard = async (id) => {
+	return PixelBoard.findById(id, {chunks: 0});
 };
 
 const transformChunkToPixelData = (chunk, startX = null, startY = null, width = null, height = null) => {
@@ -357,4 +367,4 @@ const boardTimeLeft = async (boardId) => {
 	}
 };
 
-module.exports = { getAllBoards, createBoard, getRegion, getChunk, updatePixel,deleteBoard,boardTimeLeft };
+module.exports = { getAllBoards, getBoard, createBoard, getRegion, getChunk, updatePixel,deleteBoard,boardTimeLeft };
