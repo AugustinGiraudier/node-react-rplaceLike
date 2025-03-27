@@ -232,11 +232,15 @@ const updatePixel = async (boardId, x, y, color, userId) => {
 	chunk.lastUpdated = new Date();
 	await chunk.save();
 
-	await PixelModification.updateOne(
-		{ boardId, x, y },
-		{ $set: { color, userId, timestamp: new Date() }},
-		{ upsert: true }
-	);
+	await PixelModification.create({
+		boardId,
+		x,
+		y,
+		color,
+		userId,
+		timestamp: new Date()
+	});
+	
 	return { x, y, color, userId };
 };
 // ----------- ADMIN -------------
