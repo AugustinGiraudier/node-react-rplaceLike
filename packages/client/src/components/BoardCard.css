@@ -1,0 +1,43 @@
+
+.board-card-vignette  {
+    background: #fff;
+    padding: 1rem;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    max-width: fit-content;
+}
+
+.board-card-vignette h2 {
+    font-size: 1.4rem;
+    color: #333;
+    margin: 0 0 0 0;
+}
+
+.board-card-vignette p {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+    width: fit-content;
+}
+
+.board-card-timer-container{
+    --color-timer: #d9534f;
+    color: #d9534f !important;
+    font-size: 1rem;
+    display: flex;
+    align-items: start;
+    margin-left: 2rem;;
+}
+
+.board-card-time-left {
+    font-weight: bold;
+    color: #d9534f !important;
+}
+.board-card-timer-icon{
+    fill: #d9534f !important;
+    width: 1rem;
+    margin-right: .3rem;
+}

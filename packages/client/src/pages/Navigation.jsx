@@ -7,6 +7,8 @@ import Login from './Login';
 import Register from './Register';
 import Profile from './Profile';
 import AdminDashboard from './AdminDashboard';
+import Boards from './Boards';
+import Board from './Board';
 
 function Navigation({ toggleTheme, darkMode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -136,6 +138,8 @@ function Navigation({ toggleTheme, darkMode }) {
           <Route path="/register" element={<Register />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/pixelboards" element={<Boards />} />
+          <Route path="/pixelboards/:id" element={<Board />} />
           <Route path="*" element={
             <div style={{ textAlign: 'center', padding: '50px' }}>
               <h2>404 - Page Not Found</h2>
