@@ -58,10 +58,28 @@ exports.updatePixel = async (req, res) => {
 		res.status(500).json({ message: 'Server error : ' + error });
 	}
 };
-
-exports.deleteBoard = async (req, res) => {
+exports.updateBoard = async (req, res) => {
 	try {
-		const { boardId } = req.body;
+		const { boardId } = req.params;
+		const updatedBoard = await BoardService.updateBoard(boardId, req.body);
+		res.json({
+			success: true,
+			message: 'Board updated successfully',
+			board: updatedBoard
+		});
+	} catch (error) {
+		console.error('Error updating board:', error);
+		res.status(400).json({
+			success: false,
+			message: 'Error updating board: ' + error.message
+		});
+	}
+};
+exports.deleteBoard = async (req, res) => {
+	console.log(req.params);
+	try {
+		const { boardId } = req.params;
+
 		const deleted = await BoardService.deleteBoard(boardId);
 		res.json(deleted);
 	} catch (error) {
