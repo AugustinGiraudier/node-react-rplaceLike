@@ -1,204 +1,274 @@
 .admin-dashboard {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  min-height: 100vh;
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 20px;
 }
 
 .admin-dashboard h1 {
-  text-align: center;
-  color: #2c3e50;
-  margin-bottom: 30px;
-  font-size: 2.5rem;
-  font-weight: 300;
+	margin-bottom: 20px;
+	color: #333;
 }
 
 .admin-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 20px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
 }
 
 .admin-action-button {
-  background-color: #3498db;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+	background-color: #4CAF50;
+	color: white;
+	border: none;
+	padding: 10px 15px;
+	border-radius: 4px;
+	cursor: pointer;
+	font-weight: bold;
+	transition: background-color 0.3s;
 }
 
 .admin-action-button:hover {
-  background-color: #2980b9;
+	background-color: #45a049;
+}
+
+.filter-controls {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+
+.filter-toggle-button {
+	background-color: #FF9800;
+	color: white;
+	border: none;
+	padding: 8px 12px;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background-color 0.3s;
+}
+
+.filter-toggle-button:hover {
+	background-color: #F57C00;
+}
+
+.filter-toggle-button.active {
+	background-color: #F57C00;
+}
+
+.refresh-button {
+	background-color: #2196F3;
+	color: white;
+	border: none;
+	padding: 8px 12px;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background-color 0.3s;
+}
+
+.refresh-button:hover {
+	background-color: #0b7dda;
+}
+
+.filters-container {
+	background-color: #f9f9f9;
+	border: 1px solid #eaeaea;
+	border-radius: 6px;
+	padding: 15px;
+	margin-bottom: 20px;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.filter-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px;
+	margin-bottom: 15px;
+}
+
+.filter-group {
+	flex: 1;
+	min-width: 200px;
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.filter-group label {
+	font-weight: 600;
+	color: #555;
+	font-size: 0.9rem;
+}
+
+.filter-group input,
+.filter-group select {
+	padding: 8px 10px;
+	border-radius: 4px;
+	border: 1px solid #ddd;
+	background-color: white;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+	border-color: #2196F3;
+	outline: none;
+	box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+}
+
+.clear-filters-button {
+	background-color: #e0e0e0;
+	color: #333;
+	border: none;
+	padding: 8px 15px;
+	border-radius: 4px;
+	cursor: pointer;
+	font-weight: 500;
+	transition: background-color 0.3s;
+	margin-left: auto;
+	display: block;
+}
+
+.clear-filters-button:hover {
+	background-color: #d0d0d0;
+}
+
+.table-stats {
+	margin-bottom: 10px;
+	color: #666;
+	font-size: 0.9rem;
+	font-style: italic;
 }
 
 .admin-table {
-  width: 100%;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  border-collapse: separate;
-  border-spacing: 0;
+	width: 100%;
+	border-collapse: collapse;
+	box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.admin-table thead {
-  background-color: #f1f4f8;
+.admin-table th,
+.admin-table td {
+	padding: 12px 15px;
+	text-align: left;
+	border-bottom: 1px solid #ddd;
 }
 
 .admin-table th {
-  padding: 15px;
-  text-align: left;
-  color: #2c3e50;
-  font-weight: 600;
-  border-bottom: 2px solid #e0e6ed;
+	background-color: #f8f8f8;
+	font-weight: bold;
+	color: #333;
 }
 
-.admin-table tbody tr {
-  transition: background-color 0.2s ease;
+.admin-table tr:hover {
+	background-color: #f5f5f5;
 }
 
-.admin-table tbody tr:hover {
-  background-color: #f1f4f8;
+.action-buttons {
+	display: flex;
+	gap: 8px;
 }
 
-.admin-table td {
-  padding: 15px;
-  border-bottom: 1px solid #e0e6ed;
-  color: #4a5568;
-}
-
-.admin-edit, .admin-delete {
-  margin: 0 5px;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  font-size: 0.9rem;
+.admin-edit,
+.admin-delete {
+	padding: 6px 10px;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 0.9em;
+	transition: background-color 0.3s;
 }
 
 .admin-edit {
-  background-color: #3498db;
-  color: white;
+	background-color: #2196F3;
+	color: white;
 }
 
 .admin-edit:hover {
-  background-color: #2980b9;
+	background-color: #0b7dda;
+}
+
+.admin-edit:disabled {
+	background-color: #cccccc;
+	cursor: not-allowed;
 }
 
 .admin-delete {
-  background-color: #e74c3c;
-  color: white;
+	background-color: #f44336;
+	color: white;
 }
 
 .admin-delete:hover {
-  background-color: #c0392b;
+	background-color: #d32f2f;
 }
 
-.admin-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+.loading-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 300px;
+	font-size: 1.2em;
+	color: #666;
 }
 
-.admin-modal-content {
-  background: white;
-  padding: 30px;
-  border-radius: 10px;
-  width: 500px;
-  max-width: 90%;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+.error-message {
+	background-color: #ffebee;
+	color: #c62828;
+	padding: 12px;
+	margin-bottom: 20px;
+	border-radius: 4px;
+	border-left: 4px solid #c62828;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
 }
 
-.admin-modal-content h2 {
-  margin-top: 0;
-  margin-bottom: 20px;
-  color: #2c3e50;
-  text-align: center;
-  font-weight: 400;
+.error-message button {
+	background: none;
+	border: none;
+	color: #c62828;
+	cursor: pointer;
+	font-weight: bold;
 }
 
-.admin-modal-content form > div {
-  margin-bottom: 15px;
+.no-boards {
+	text-align: center;
+	color: #666;
+	font-style: italic;
+	padding: 30px 0;
 }
 
-.admin-modal-content label {
-  display: block;
-  margin-bottom: 8px;
-  color: #4a5568;
-  font-weight: 600;
+/* Status-specific styling */
+.status-active {
+	background-color: rgba(76, 175, 80, 0.05);
 }
 
-.admin-modal-content input {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #e0e6ed;
-  border-radius: 6px;
-  transition: border-color 0.2s ease;
+.status-non-active {
+	background-color: rgba(255, 152, 0, 0.05);
 }
 
-.admin-modal-content input:focus {
-  outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+.status-finished {
+	background-color: rgba(158, 158, 158, 0.05);
+	color: #616161;
 }
 
-.admin-modal-actions {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
+.status-creating {
+	background-color: rgba(33, 150, 243, 0.05);
 }
 
-.admin-modal-actions button {
-  padding: 10px 15px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  font-weight: 500;
+.status-select {
+	padding: 5px;
+	border-radius: 4px;
+	cursor: pointer;
 }
 
-.admin-modal-actions button:first-child {
-  background-color: #3498db;
-  color: white;
+.status-select.status-active {
+	background-color: rgba(76, 175, 80, 0.2);
+	border: 1px solid #4CAF50;
 }
 
-.admin-modal-actions button:first-child:hover {
-  background-color: #2980b9;
+.status-select.status-non-active {
+	background-color: rgba(255, 152, 0, 0.2);
+	border: 1px solid #FF9800;
 }
 
-.admin-modal-actions button:last-child {
-  background-color: #f1f2f3;
-  color: #4a5568;
-}
-
-.admin-modal-actions button:last-child:hover {
-  background-color: #e0e1e3;
-}
-
-@media (max-width: 768px) {
-  .admin-table {
-    font-size: 0.9rem;
-  }
-
-  .admin-table th, .admin-table td {
-    padding: 10px;
-  }
-
-  .admin-action-button {
-    width: 100%;
-  }
+.status-finished {
+	font-weight: bold;
 }
