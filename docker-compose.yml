@@ -11,6 +11,7 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=mbds
       - MONGO_INITDB_ROOT_PASSWORD=mbds
       - MONGO_INITDB_DATABASE=rplace
+    command: mongod --bind_ip_all
 
 volumes:
   mongodb_data:
