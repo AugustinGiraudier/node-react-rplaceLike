@@ -30,10 +30,6 @@
 	color: #333;
 }
 
-.dark-theme .profile-header h1 {
-	color: #f0f0f0;
-}
-
 .edit-profile-btn {
 	position: absolute;
 	right: 0;
@@ -59,11 +55,6 @@
 	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
-.dark-theme .profile-card {
-	background-color: #333;
-	color: #aaa;
-}
-
 .profile-card h2 {
 	margin-top: 0;
 	margin-bottom: 20px;
@@ -73,17 +64,11 @@
 	padding-bottom: 10px;
 }
 
-.dark-theme .profile-card h2 {
-	color: #f0f0f0;
-	border-color: #555;
-}
-
 .profile-info {
 	display: flex;
 	flex-direction: column;
 	gap: 15px;
 }
-
 
 .info-item {
 	display: flex;
@@ -101,10 +86,6 @@
 	color: #333;
 }
 
-.dark-theme .info-label {
-	color: #aaa;
-}
-
 .contribution-stats {
 	display: flex;
 	gap: 20px;
@@ -117,11 +98,6 @@
 	padding: 15px;
 	border-radius: 8px;
 	text-align: center;
-}
-
-.dark-theme .stat-box {
-	background-color:  #555;
-	color: #aaa;
 }
 
 .stat-box h3 {
@@ -148,21 +124,10 @@
 	border-left: 4px solid #3498db;
 }
 
-.dark-theme .contribution-item {
-	background-color: #555;
-	color: #aaa;
-}
-
-
-
 .contribution-name {
 	font-weight: 600;
 	margin-bottom: 5px;
 	color: #333;
-}
-
-.dark-theme .contribution-name {
-	color: #f0f0f0;
 }
 
 .contribution-details {
