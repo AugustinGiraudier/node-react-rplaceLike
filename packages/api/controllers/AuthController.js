@@ -8,10 +8,16 @@ exports.register = async (req, res) => {
 		}
 		const {user, token} = await registerUser(username, email, password);
 		res.status(201).json({
-			success: true,
-			token,
-			user: {id: user._id, username: user.username, email: user.email},
-		});
+            success: true,
+            token,
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+				bio: user.bio,
+            },
+        });
 	} catch (error) {
 		res.status(500).json({message: "Failed to register user" + error});
 	}
@@ -25,10 +31,16 @@ exports.login = async (req, res) => {
 		}
 		const {user, token} = await loginUser(email, password);
 		res.json({
-			success: true,
-			token,
-			user: {id: user._id, username: user.username, email: user.email},
-		});
+            success: true,
+            token,
+            user: {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+				bio: user.bio,
+            },
+        });
 	} catch (error) {
 		res.status(500).json({message: "Failed to login user" + error});
 	}

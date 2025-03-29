@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, Route, Routes, useLocation } from 'react-router-dom';
+import { Link, Route, Routes, useLocation, Navigate } from 'react-router-dom';
 import '../styles/Navigation.css';
 
 import Homepage from './Homepage';
@@ -55,6 +55,7 @@ function Navigation({ toggleTheme, darkMode }) {
           </div>
 
           <ul className={`nav-links ${mobileMenuOpen ? 'active' : ''}`}>
+            {/* Always visible menu items */}
             <li>
               <Link to="/" className={isActive('/')} onClick={closeMobileMenu}>
                 Home
@@ -66,7 +67,8 @@ function Navigation({ toggleTheme, darkMode }) {
               </Link>
             </li>
 
-            {isLoggedIn ? (
+            {/* Logged-in user menu items */}
+            {isLoggedIn && (
               <>
                 <li>
                   <Link to="/profile" className={isActive('/profile')} onClick={closeMobileMenu}>
@@ -74,6 +76,7 @@ function Navigation({ toggleTheme, darkMode }) {
                   </Link>
                 </li>
 
+                {/* Admin Panel - only visible to admins */}
                 {isAdmin && (
                   <li>
                     <Link to="/admin" className={isActive('/admin')} onClick={closeMobileMenu}>
@@ -91,7 +94,6 @@ function Navigation({ toggleTheme, darkMode }) {
                       setIsLoggedIn(false);
                       setIsAdmin(false);
                       closeMobileMenu();
-                      // Redirect to home if needed
                       window.location.href = '/';
                     }}
                   >
@@ -99,7 +101,10 @@ function Navigation({ toggleTheme, darkMode }) {
                   </button>
                 </li>
               </>
-            ) : (
+            )}
+
+            {/* Login/Register for non-logged in users */}
+            {!isLoggedIn && (
               <>
                 <li>
                   <Link to="/login" className={isActive('/login')} onClick={closeMobileMenu}>
@@ -114,7 +119,7 @@ function Navigation({ toggleTheme, darkMode }) {
               </>
             )}
 
-            {/* Bouton de thème */}
+            {/* Theme toggle */}
             <li>
               <button
                 onClick={toggleTheme}
@@ -128,14 +133,21 @@ function Navigation({ toggleTheme, darkMode }) {
         </div>
       </nav>
 
-      {/* Routes définies ici */}
+      {/* Routes */}
       <main className="content">
         <Routes>
           <Route path="/" element={<Homepage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/admin" element={<AdminDashboard />} />
+
+          {/* Admin route with protection */}
+          <Route
+            path="/admin"
+            element={isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />}
+          />
+
+          {/* 404 Route */}
           <Route path="*" element={
             <div style={{ textAlign: 'center', padding: '50px' }}>
               <h2>404 - Page Not Found</h2>

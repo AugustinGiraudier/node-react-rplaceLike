@@ -17,4 +17,15 @@ const updateUser = async (id, updates) => {
     return updatedUser;
 };
 
-module.exports = {updateUser};
+const getUser = async (id) => {
+	const user = await User.findById(id);
+	if (!user) throw new Error("User not found");
+
+	return user;
+};
+
+const getUsers = async () => {
+	const users = await User.find();
+	return users;
+};
+module.exports = {updateUser,getUser,getUsers};

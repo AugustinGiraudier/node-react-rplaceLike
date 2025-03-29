@@ -11,6 +11,7 @@ const setupSockets = require('./websockets/sockets');
 const testRoutes = require("./routes/auth.tests.routes");
 const userRoutes = require("./routes/user.routes");
 const statsRoutes = require("./routes/stats.routes");
+const adminRoutes = require("./routes/admin.routes");
 
 dotenv.config();
 connectDB();
@@ -27,7 +28,7 @@ app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/stats", statsRoutes);
 app.use('/boards', boardRoutes);
-
+app.use('/admin', adminRoutes);
 /* ---- TESTS Auth and Admin perms ---- */
 app.use('/tests', testRoutes);
 /* ------------------------------------ */
