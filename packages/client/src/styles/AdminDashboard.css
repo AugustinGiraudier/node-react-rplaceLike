@@ -55,27 +55,13 @@
 	background-color: #F57C00;
 }
 
-.refresh-button {
-	background-color: #2196F3;
-	color: white;
-	border: none;
-	padding: 8px 12px;
-	border-radius: 4px;
-	cursor: pointer;
-	transition: background-color 0.3s;
-}
-
-.refresh-button:hover {
-	background-color: #0b7dda;
-}
-
 .filters-container {
 	background-color: #f9f9f9;
 	border: 1px solid #eaeaea;
 	border-radius: 6px;
 	padding: 15px;
 	margin-bottom: 20px;
-	box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .filter-row {
@@ -141,7 +127,7 @@
 .admin-table {
 	width: 100%;
 	border-collapse: collapse;
-	box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .admin-table th,

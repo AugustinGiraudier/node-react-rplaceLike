@@ -172,7 +172,7 @@ function AdminDashboard() {
 					'Content-Type': 'application/json',
 					Authorization: `Bearer ${token}`
 				},
-				body: JSON.stringify({ status: newStatus })
+				body: JSON.stringify({status: newStatus})
 			});
 
 			if (!response.ok) {
@@ -281,10 +281,6 @@ function AdminDashboard() {
 							onClick={() => setShowFilters(!showFilters)}
 						>
 							{showFilters ? 'Hide Filters' : 'Show Filters'}
-						</button>
-
-						<button className="refresh-button" onClick={fetchBoards}>
-							Refresh
 						</button>
 					</div>
 				</div>
