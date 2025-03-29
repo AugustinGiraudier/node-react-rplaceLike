@@ -8,7 +8,4 @@ const pixelModificationSchema = new mongoose.Schema({
 	timestamp: { type: Date, default: Date.now },
 });
 
-// Index unique pour ne garder qu'une entrée par pixel
-pixelModificationSchema.index({ boardId: 1, x: 1, y: 1 }, { unique: true });
-
 module.exports = mongoose.model('PixelModification', pixelModificationSchema);

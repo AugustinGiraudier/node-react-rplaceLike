@@ -232,11 +232,15 @@ const updatePixel = async (boardId, x, y, color, userId) => {
 	chunk.lastUpdated = new Date();
 	await chunk.save();
 
-	await PixelModification.updateOne(
-		{ boardId, x, y },
-		{ $set: { color, userId, timestamp: new Date() }},
-		{ upsert: true }
-	);
+	await PixelModification.create({
+		boardId,
+		x,
+		y,
+		color,
+		userId,
+		timestamp: new Date()
+	});
+
 	return { x, y, color, userId };
 };
 // ----------- ADMIN -------------
@@ -366,5 +370,133 @@ const boardTimeLeft = async (boardId) => {
 		throw error;
 	}
 };
+/**
+ * Met à jour un PixelBoard existant avec de nouvelles données.
+ * Gère le redimensionnement en créant/supprimant des chunks au besoin.
+ * @param {string} boardId - ID du board à modifier
+ * @param {Object} data - Nouvelles données (name, width, height, placementDelay, status, endingDate)
+ * @returns {Promise<Object>} - Le board modifié
+ */
+const updateBoard = async (boardId, data) => {
+	try {
+		// Récupérer le board existant
+		const board = await PixelBoard.findById(boardId);
+		if (!board) throw new Error("Board not found");
 
-module.exports = { getAllBoards, getBoard, createBoard, getRegion, getChunk, updatePixel,deleteBoard,boardTimeLeft };
+		// Vérifier si le board est en cours d'utilisation
+		if (board.status === 'finished') {
+			throw new Error("Cannot modify a finished board");
+		}
+
+		// Sauvegarde des dimensions actuelles pour comparaison
+		const originalWidth = board.width;
+		const originalHeight = board.height;
+
+		// Mise à jour des propriétés de base
+		if (data.name) board.name = data.name;
+		if (data.placementDelay !== undefined && data.placementDelay >= 0) board.placementDelay = data.placementDelay;
+		if (data.status && ['active', 'non-active'].includes(data.status)) {
+			board.status = data.status;
+		}
+
+		// Gestion de la date de fin
+		if (Object.prototype.hasOwnProperty.call(data, 'endingDate')) {
+			if (data.endingDate === null) {
+				board.endingDate = null;
+			} else if (typeof data.endingDate === 'number' && data.endingDate >= 0) {
+				board.endingDate = new Date(new Date().getTime() + data.endingDate * 24 * 60 * 60 * 1000);
+			}
+		}
+
+		// Validation de la nouvelle taille
+		if (data.width) {
+			if (!(data.width % 16 === 0)) throw new Error("Width must be a multiple of 16");
+			board.width = data.width;
+		}
+
+		if (data.height) {
+			if (!(data.height % 16 === 0)) throw new Error("Height must be a multiple of 16");
+			board.height = data.height;
+		}
+
+		// Appliquer les changements de base du board d'abord
+		await board.save();
+
+		// Gestion du redimensionnement si nécessaire
+		if ((data.width && data.width !== originalWidth) || (data.height && data.height !== originalHeight)) {
+			console.log(`Resizing board from ${originalWidth}x${originalHeight} to ${board.width}x${board.height}`);
+			await resizeBoard(board, originalWidth, originalHeight);
+		}
+
+		return board;
+	} catch (error) {
+		console.error(`Error while updating board ${boardId}:`, error);
+		throw error;
+	}
+};
+
+/**
+ * Redimensionne un board en ajoutant ou supprimant des chunks.
+ * @param {Object} board - Le board à redimensionner
+ * @param {number} originalWidth - Largeur originale
+ * @param {number} originalHeight - Hauteur originale
+ * @returns {Promise<void>}
+ */
+const resizeBoard = async (board, originalWidth, originalHeight) => {
+	const chunkSize = 16;
+
+	// Calculer les dimensions en chunks
+	const newChunksX = board.width / chunkSize;
+	const newChunksY = board.height / chunkSize;
+	const oldChunksX = originalWidth / chunkSize;
+	const oldChunksY = originalHeight / chunkSize;
+
+	// 1. Supprimer les chunks qui ne sont plus nécessaires
+	if (newChunksX < oldChunksX || newChunksY < oldChunksY) {
+		await Chunk.deleteMany({
+			boardId: board._id,
+			$or: [
+				{ x: { $gte: newChunksX * chunkSize } },
+				{ y: { $gte: newChunksY * chunkSize } }
+			]
+		});
+	}
+
+	// 2. Ajouter de nouveaux chunks si nécessaire
+	const bulkOps = [];
+
+	// Parcourir toutes les positions où des chunks pourraient être nécessaires
+	for (let i = 0; i < newChunksX; i++) {
+		for (let j = 0; j < newChunksY; j++) {
+			const chunkX = i * chunkSize;
+			const chunkY = j * chunkSize;
+
+			// Vérifier si ce chunk est dans la zone nouvellement ajoutée
+			if (chunkX >= oldChunksX * chunkSize || chunkY >= oldChunksY * chunkSize) {
+				bulkOps.push({
+					insertOne: {
+						document: {
+							x: chunkX,
+							y: chunkY,
+							boardId: board._id,
+							data: Buffer.alloc(128, 0), // 16x16 pixels, 4 bits par pixel
+							lastUpdated: new Date()
+						}
+					}
+				});
+			}
+		}
+	}
+
+	// Exécuter les opérations d'ajout en lot si nécessaire
+	if (bulkOps.length > 0) {
+		await Chunk.bulkWrite(bulkOps);
+	}
+
+	// 3. Mettre à jour la liste des chunks dans le board
+	const chunks = await Chunk.find({ boardId: board._id }, '_id', { lean: true });
+	board.chunks = chunks.map(chunk => chunk._id);
+
+	await board.save();
+};
+module.exports = { getAllBoards, getBoard, createBoard, getRegion, getChunk, updatePixel,deleteBoard,boardTimeLeft,updateBoard };
