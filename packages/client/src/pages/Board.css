@@ -1,206 +1,167 @@
 .board-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    max-width: 800px;
-    margin: 0 auto;
-  }
-  
-  .board-title {
-    font-size: 1.8rem;
-    margin-bottom: 15px;
-    text-align: center;
-  }
-  
-  .board-info {
-    width: 100%;
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: center;
-  }
-  
-  .board-details {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-  }
-  
-  .board-status {
-    margin-top: 10px;
-    padding: 10px;
-    border-radius: 5px;
-    text-align: center;
-    width: 100%;
-  }
-  
-  .status-open {
-    background-color: rgba(0, 200, 83, 0.1);
-    border: 1px solid rgba(0, 200, 83, 0.3);
-    color: #006633;
-  }
-  
-  .status-closed {
-    background-color: rgba(200, 0, 0, 0.1);
-    border: 1px solid rgba(200, 0, 0, 0.3);
-    color: #990000;
-  }
-  
-  .loading-container, .error-container {
-    text-align: center;
-    padding: 40px;
-    font-size: 1.2rem;
-  }
-  
-  .error-container {
-    color: #e50000;
-  }
-  
-  /* Palette de couleurs */
-  .color-palette {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 5px;
-    margin-bottom: 20px;
-    max-width: 320px;
-  }
-  
-  .color-option {
-    width: 30px;
-    height: 30px;
-    border-radius: 4px;
-    cursor: pointer;
-    border: 1px solid #ddd;
-    transition: transform 0.2s;
-  }
-  
-  .color-option:hover {
-    transform: scale(1.1);
-  }
-  
-  .color-option.selected {
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5);
-    transform: scale(1.1);
-  }
-  
-  .color-option.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  .color-option.disabled:hover {
-    transform: none;
-  }
-  
-  /* Pixel Board */
-  .pixel-board-container {
-    position: relative;
-    margin: 10px 0;
-  }
-  
-  .pixel-board {
-    display: flex;
-    flex-direction: column;
-    border: 1px solid #ddd;
-    background-color: #fff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  .pixel-board.board-closed {
-    pointer-events: none;
-    opacity: 0.95;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-  }
-  
-  .pixel-row {
-    display: flex;
-  }
-  
-  .pixel {
-    width: 15px;
-    height: 15px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-  
-  .pixel:hover {
-    opacity: 0.8;
-  }
-  
-  .pixel.in-cooldown {
-    cursor: not-allowed;
-    /* Subtile pulsation pour indiquer le cooldown */
-    animation: pulse 2s infinite;
-  }
-  
-  .pixel.closed {
-    cursor: default;
-  }
-  
-  @keyframes pulse {
-    0% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.7;
-    }
-    100% {
-      opacity: 1;
-    }
-  }
-  
-  /* Info-bulle de survol */
-  .pixel-hover-info {
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    z-index: 100;
-    min-width: 150px;
-    pointer-events: none; /* Pour que l'info-bulle ne bloque pas les interactions */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  }
-  
-  .pixel-hover-info p {
-    margin: 4px 0;
-  }
-  
-  .board-instructions {
-    margin-top: 20px;
-    text-align: center;
-    font-size: 0.9rem;
-    color: #666;
-    max-width: 600px;
-  }
-  
-  .closed-message {
-    font-weight: bold;
-    color: #e50000;
-    margin-top: 10px;
-    padding: 10px;
-    background-color: rgba(229, 0, 0, 0.1);
-    border-radius: 4px;
-  }
-  
-  /* Responsive design */
-  @media (max-width: 600px) {
-    .pixel {
-      width: 10px;
-      height: 10px;
-    }
-    
-    .color-option {
-      width: 25px;
-      height: 25px;
-    }
-    
-    .pixel-hover-info {
-      font-size: 0.7rem;
-      min-width: 120px;
-      padding: 6px 8px;
-    }
-  }
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 20px;
+	max-width: 800px;
+	margin: 0 auto;
+}
+
+.board-title {
+	font-size: 1.8rem;
+	margin-bottom: 15px;
+	text-align: center;
+}
+
+.board-info {
+	width: 100%;
+	margin-bottom: 20px;
+	display: flex;
+	justify-content: center;
+}
+
+.board-details {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 5px;
+}
+
+.board-status {
+	margin-top: 10px;
+	padding: 10px;
+	border-radius: 5px;
+	text-align: center;
+	width: 100%;
+}
+
+.status-open {
+	background-color: rgba(0, 200, 83, 0.1);
+	border: 1px solid rgba(0, 200, 83, 0.3);
+	color: #006633;
+}
+
+.status-closed {
+	background-color: rgba(200, 0, 0, 0.1);
+	border: 1px solid rgba(200, 0, 0, 0.3);
+	color: #990000;
+}
+
+.loading-container, .error-container {
+	text-align: center;
+	padding: 40px;
+	font-size: 1.2rem;
+}
+
+.error-container {
+	color: #e50000;
+}
+
+/* Palette de couleurs */
+.color-palette {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 5px;
+	margin-bottom: 20px;
+	max-width: 320px;
+}
+
+.color-option {
+	width: 30px;
+	height: 30px;
+	border-radius: 4px;
+	cursor: pointer;
+	border: 1px solid #ddd;
+	transition: transform 0.2s;
+}
+
+.color-option:hover {
+	transform: scale(1.1);
+}
+
+.color-option.selected {
+	box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5);
+	transform: scale(1.1);
+}
+
+.color-option.disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.color-option.disabled:hover {
+	transform: none;
+}
+
+/* Pixel Board Canvas */
+.pixel-board-container {
+	position: relative;
+	margin: 10px 0;
+}
+
+.pixel-board-canvas {
+	border: 1px solid #ddd;
+	background-color: #fff;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+	cursor: pointer;
+}
+
+.pixel-board-canvas.board-closed {
+	cursor: default;
+	opacity: 0.95;
+	box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Info-bulle de survol */
+.pixel-hover-info {
+	background-color: rgba(0, 0, 0, 0.8);
+	color: white;
+	padding: 8px 12px;
+	border-radius: 4px;
+	font-size: 0.8rem;
+	z-index: 100;
+	min-width: 150px;
+	pointer-events: none; /* Pour que l'info-bulle ne bloque pas les interactions */
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.pixel-hover-info p {
+	margin: 4px 0;
+}
+
+.board-instructions {
+	margin-top: 20px;
+	text-align: center;
+	font-size: 0.9rem;
+	color: #666;
+	max-width: 600px;
+}
+
+.closed-message {
+	font-weight: bold;
+	color: #e50000;
+	margin-top: 10px;
+	padding: 10px;
+	background-color: rgba(229, 0, 0, 0.1);
+	border-radius: 4px;
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+	.pixel-board-canvas {
+		width: 320px;
+		height: 320px;
+	}
+
+	.color-option {
+		width: 25px;
+		height: 25px;
+	}
+
+	.pixel-hover-info {
+		font-size: 0.7rem;
+		min-width: 120px;
+		padding: 6px 8px;
+	}
+}
