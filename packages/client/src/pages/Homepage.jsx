@@ -1,6 +1,6 @@
 import {useState, useEffect} from 'react';
-import {Link} from 'react-router-dom';
 import './Homepage.css';
+import BoardCard from '../components/BoardCard';
 
 const {VITE_API_URL} = import.meta.env;
 
@@ -19,16 +19,64 @@ function Homepage() {
 			setLoading(true);
 			try {
 				const statsResponse = await fetch(`${VITE_API_URL}/stats`);
+				if (!statsResponse.ok) {
+					throw new Error(`Error fetching stats: ${statsResponse.status}`);
+				}
 				const statsData = await statsResponse.json();
 				setStats(statsData);
 
-				const activeBoardsResponse = await fetch(`${VITE_API_URL}/pixelboards/active`);
-				const activeBoardsData = await activeBoardsResponse.json();
-				setActiveBoards(activeBoardsData);
+				const boardsResponse = await fetch(`${VITE_API_URL}/boards`);
+				if (!boardsResponse.ok) {
+					throw new Error(`Error fetching boards: ${boardsResponse.status}`);
+				}
+				const boardsData = await boardsResponse.json();
 
-				const completedBoardsResponse = await fetch(`${VITE_API_URL}/pixelboards/completed`);
-				const completedBoardsData = await completedBoardsResponse.json();
-				setCompletedBoards(completedBoardsData);
+				// Traiter tous les boards pour obtenir le temps restant
+				const boardsWithTimeLeft = await Promise.all(
+					boardsData.map(async (board) => {
+						try {
+							const timeResponse = await fetch(`${VITE_API_URL}/boards/timeleft`, {
+								method: 'POST',
+								headers: {
+									'Content-Type': 'application/json'
+								},
+								body: JSON.stringify({ boardId: board._id })
+							});
+
+							if (!timeResponse.ok) {
+								return { ...board, timeLeft: "?" };
+							}
+
+							const timeData = await timeResponse.json();
+
+							let timeLeftStr = "?";
+							if (timeData.timeleft === "Infinite") {
+								timeLeftStr = "∞";
+							} else if (timeData.timeleft && typeof timeData.timeleft === 'object') {
+								const { days, hours } = timeData.timeleft;
+
+								if (days > 0) {
+									timeLeftStr = `${days}d`;
+								} else if (hours > 0) {
+									timeLeftStr = `${hours}h`;
+								} else {
+									timeLeftStr = "<1h";
+								}
+							}
+
+							return { ...board, timeLeft: timeLeftStr, status: timeData.status };
+						} catch (err) {
+							console.error(`Error fetching time for board ${board._id}:`, err);
+							return { ...board, timeLeft: "?" };
+						}
+					})
+				);
+
+				const active = boardsWithTimeLeft.filter(board => board.status === 'active' || !board.status);
+				const completed = boardsWithTimeLeft.filter(board => board.status === 'non-active');
+
+				setActiveBoards(active);
+				setCompletedBoards(completed);
 			} catch (err) {
 				console.error('Error fetching data:', err);
 				setError('Failed to load data. Please try again later.');
@@ -40,28 +88,10 @@ function Homepage() {
 		fetchData();
 	}, []);
 
-	const renderBoardPreview = (board) => (
-		<div className="board-preview" key={board._id}>
-			<h4>{board.name}</h4>
-			<div className="preview-image">
-				<img src={board.previewUrl || '/placeholder-board.png'} alt={board.name}/>
-			</div>
-			<p>Size: {board.width}x{board.height}</p>
-			<p>{board.status === 'active' ?
-				`Ends: ${new Date(board.endDate).toLocaleDateString()}` :
-				`Completed: ${new Date(board.endDate).toLocaleDateString()}`}
-			</p>
-			<Link to={`/pixelboard/${board._id}`} className="view-button">
-				{board.status === 'active' ? 'Join Canvas' : 'View Artwork'}
-			</Link>
-		</div>
-	);
-
 	return (
 		<div className="homepage">
 			<div className="hero-section">
 				<h1>PixelBoard</h1>
-				<p className="tagline">Create collaborative pixel art, one pixel at a time</p>
 			</div>
 
 			<div className="stats-section">
@@ -82,10 +112,18 @@ function Homepage() {
 			) : (
 				<>
 					<section className="boards-section">
-						<h2>Active PixelBoards</h2>
+						<h2>Active</h2>
 						<div className="boards-grid">
 							{activeBoards.length > 0 ? (
-								activeBoards.map(board => renderBoardPreview(board))
+								activeBoards.map(board => (
+									<BoardCard
+										key={board._id}
+										id={board._id}
+										name={board.name}
+										author={board.author?.username || "Unknown"}
+										time={board.timeLeft}
+									/>
+								))
 							) : (
 								<p>No active PixelBoards at the moment.</p>
 							)}
@@ -93,10 +131,18 @@ function Homepage() {
 					</section>
 
 					<section className="boards-section">
-						<h2>Completed Masterpieces</h2>
+						<h2>Completed</h2>
 						<div className="boards-grid">
 							{completedBoards.length > 0 ? (
-								completedBoards.map(board => renderBoardPreview(board))
+								completedBoards.map(board => (
+									<BoardCard
+										key={board._id}
+										id={board._id}
+										name={board.name}
+										author={board.author?.username || "Unknown"}
+										time={"Completed"}
+									/>
+								))
 							) : (
 								<p>No completed PixelBoards yet.</p>
 							)}
