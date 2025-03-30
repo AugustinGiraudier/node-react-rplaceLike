@@ -25,7 +25,6 @@ function BoardCard({ name, author, time, id, refreshTrigger }) {
 	const [previewError, setPreviewError] = useState(false);
 	const [cacheKey, setCacheKey] = useState(Date.now());
 
-	// Actualiser le cacheKey quand refreshTrigger change
 	useEffect(() => {
 		setCacheKey(Date.now());
 		setPreviewLoaded(false);
@@ -33,7 +32,6 @@ function BoardCard({ name, author, time, id, refreshTrigger }) {
 	}, [refreshTrigger]);
 
 
-	// Ajouter un paramètre cache-busting à l'URL pour éviter la mise en cache par le navigateur
 	const snapshotUrl = `${VITE_API_URL}/snapshot/board/${id}/snapshot?t=${cacheKey}`;
 
 	const handleImageError = () => {

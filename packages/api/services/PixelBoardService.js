@@ -3,6 +3,7 @@ const Chunk = require("../models/Chunk");
 const PixelModification = require("../models/PixelModification");
 const { getUser } = require("../services/userService");
 const { addUserPixel } = require("./UserService");
+const {generateSnapshot, shouldUpdateSnapshot, getSnapshot} = require("./SnapshotService");
 
 // ----------- GLOBAL -------------
 const COLOR_PALETTE = [
@@ -26,9 +27,24 @@ const COLOR_INDEX = {
  * @returns {Promise<Array>} - Liste des boards
  */
 const getAllBoards = async () => {
-	return PixelBoard.find({}, {
-		chunks: 0
+	const boards = await PixelBoard.find({}, {
+		chunks: 0,
+		snapshot: 0
 	}).populate('author', "username");
+
+	for (const board of boards) {
+		if (shouldUpdateSnapshot(board)) {
+			try {
+				generateSnapshot(board._id).catch(err => {
+					console.error(`Error generating snapshot for board ${board._id}:`, err);
+				});
+			} catch (error) {
+				console.error(`Error checking snapshot for board ${board._id}:`, error);
+			}
+		}
+	}
+
+	return boards;
 };
 
 /**
@@ -36,7 +52,26 @@ const getAllBoards = async () => {
  * @returns {Promise} - info board
  */
 const getBoard = async (id) => {
-	return PixelBoard.findById(id, {chunks: 0});
+	const board = await PixelBoard.findById(id, {
+		chunks: 0,
+		snapshot: 0
+	});
+
+	if (board && shouldUpdateSnapshot(board)) {
+		try {
+
+			await generateSnapshot(board._id);
+
+			return await PixelBoard.findById(id, {
+				chunks: 0,
+				snapshot: 0
+			});
+		} catch (error) {
+			console.error(`Error updating snapshot for board ${id}:`, error);
+		}
+	}
+
+	return board;
 };
 
 const transformChunkToPixelData = (chunk, startX = null, startY = null, width = null, height = null) => {
@@ -308,6 +343,12 @@ const createBoard = async (data) => {
 	board.status = 'active';
 	await board.save();
 
+	try {
+		await generateSnapshot(board._id);
+	} catch (error) {
+		console.error('Error generating initial snapshot:', error);
+	}
+
 	return board;
 };
 
@@ -388,23 +429,20 @@ const updateBoard = async (boardId, data) => {
 		const board = await PixelBoard.findById(boardId);
 		if (!board) throw new Error("Board not found");
 
-		// Vérifier si le board est en cours d'utilisation
 		if (board.status === 'finished') {
 			throw new Error("Cannot modify a finished board");
 		}
 
-		// Sauvegarde des dimensions actuelles pour comparaison
 		const originalWidth = board.width;
 		const originalHeight = board.height;
 
-		// Mise à jour des propriétés de base
+
 		if (data.name) board.name = data.name;
 		if (data.placementDelay !== undefined && data.placementDelay >= 0) board.placementDelay = data.placementDelay;
 		if (data.status && ['active', 'non-active'].includes(data.status)) {
 			board.status = data.status;
 		}
 
-		// Gestion de la date de fin
 		if (Object.prototype.hasOwnProperty.call(data, 'endingDate')) {
 			if (data.endingDate === null) {
 				board.endingDate = null;
@@ -413,7 +451,6 @@ const updateBoard = async (boardId, data) => {
 			}
 		}
 
-		// Validation de la nouvelle taille
 		if (data.width) {
 			if (!(data.width % 16 === 0)) throw new Error("Width must be a multiple of 16");
 			board.width = data.width;
@@ -424,13 +461,17 @@ const updateBoard = async (boardId, data) => {
 			board.height = data.height;
 		}
 
-		// Appliquer les changements de base du board d'abord
 		await board.save();
 
-		// Gestion du redimensionnement si nécessaire
 		if ((data.width && data.width !== originalWidth) || (data.height && data.height !== originalHeight)) {
 			console.log(`Resizing board from ${originalWidth}x${originalHeight} to ${board.width}x${board.height}`);
 			await resizeBoard(board, originalWidth, originalHeight);
+		}
+
+		try {
+			await generateSnapshot(board._id, true);
+		} catch (error) {
+			console.error('Error regenerating snapshot after board update:', error);
 		}
 
 		return board;
@@ -450,13 +491,11 @@ const updateBoard = async (boardId, data) => {
 const resizeBoard = async (board, originalWidth, originalHeight) => {
 	const chunkSize = 16;
 
-	// Calculer les dimensions en chunks
 	const newChunksX = board.width / chunkSize;
 	const newChunksY = board.height / chunkSize;
 	const oldChunksX = originalWidth / chunkSize;
 	const oldChunksY = originalHeight / chunkSize;
 
-	// 1. Supprimer les chunks qui ne sont plus nécessaires
 	if (newChunksX < oldChunksX || newChunksY < oldChunksY) {
 		await Chunk.deleteMany({
 			boardId: board._id,
@@ -467,16 +506,14 @@ const resizeBoard = async (board, originalWidth, originalHeight) => {
 		});
 	}
 
-	// 2. Ajouter de nouveaux chunks si nécessaire
 	const bulkOps = [];
 
-	// Parcourir toutes les positions où des chunks pourraient être nécessaires
+
 	for (let i = 0; i < newChunksX; i++) {
 		for (let j = 0; j < newChunksY; j++) {
 			const chunkX = i * chunkSize;
 			const chunkY = j * chunkSize;
 
-			// Vérifier si ce chunk est dans la zone nouvellement ajoutée
 			if (chunkX >= oldChunksX * chunkSize || chunkY >= oldChunksY * chunkSize) {
 				bulkOps.push({
 					insertOne: {
@@ -493,15 +530,45 @@ const resizeBoard = async (board, originalWidth, originalHeight) => {
 		}
 	}
 
-	// Exécuter les opérations d'ajout en lot si nécessaire
 	if (bulkOps.length > 0) {
 		await Chunk.bulkWrite(bulkOps);
 	}
 
-	// 3. Mettre à jour la liste des chunks dans le board
 	const chunks = await Chunk.find({ boardId: board._id }, '_id', { lean: true });
 	board.chunks = chunks.map(chunk => chunk._id);
 
 	await board.save();
 };
-module.exports = { getAllBoards, getBoard, createBoard, getRegion, getChunk, updatePixel,deleteBoard,boardTimeLeft,updateBoard };
+
+
+const regenerateSnapshot = async (boardId) => {
+	try {
+		return await generateSnapshot(boardId, true);
+	} catch (error) {
+		console.error(`Error regenerating snapshot for board ${boardId}:`, error);
+		throw error;
+	}
+};
+
+const getBoardSnapshot = async (boardId) => {
+	try {
+		return await getSnapshot(boardId);
+	} catch (error) {
+		console.error(`Error getting snapshot for board ${boardId}:`, error);
+		throw error;
+	}
+};
+
+module.exports = {
+	getAllBoards,
+	getBoard,
+	createBoard,
+	getRegion,
+	getChunk,
+	updatePixel,
+	deleteBoard,
+	boardTimeLeft,
+	updateBoard,
+	regenerateSnapshot,
+	getBoardSnapshot
+};

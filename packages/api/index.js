@@ -12,7 +12,7 @@ const testRoutes = require("./routes/auth.tests.routes");
 const userRoutes = require("./routes/user.routes");
 const statsRoutes = require("./routes/stats.routes");
 const adminRoutes = require("./routes/admin.routes");
-
+const snapshotRoutes = require("./routes/snapshot.routes");
 dotenv.config();
 connectDB();
 
@@ -29,6 +29,7 @@ app.use("/user", userRoutes);
 app.use("/stats", statsRoutes);
 app.use('/boards', boardRoutes);
 app.use('/admin', adminRoutes);
+app.use('/snapshot', snapshotRoutes);
 /* ---- TESTS Auth and Admin perms ---- */
 app.use('/tests', testRoutes);
 /* ------------------------------------ */
