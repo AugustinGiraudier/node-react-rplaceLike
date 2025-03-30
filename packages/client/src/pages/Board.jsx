@@ -85,19 +85,16 @@ function Board() {
 		const ctx = canvasRef.current.getContext('2d');
 		ctx.fillStyle = color;
 
-		// Calculer la taille actuelle des pixels en fonction du zoom
-		const currentPixelSize = basePixelSize * zoomLevel;
-
-		// Coordonnées en pixels sur le canvas
-		const canvasX = x * currentPixelSize;
-		const canvasY = y * currentPixelSize;
+		// Coordonnées en pixels sur le canvas (sans appliquer le zoom ici)
+		const canvasX = x * basePixelSize;
+		const canvasY = y * basePixelSize;
 
 		// Dessiner le pixel
-		ctx.clearRect(canvasX, canvasY, currentPixelSize, currentPixelSize);
-		ctx.fillRect(canvasX, canvasY, currentPixelSize, currentPixelSize);
+		ctx.clearRect(canvasX, canvasY, basePixelSize, basePixelSize);
+		ctx.fillRect(canvasX, canvasY, basePixelSize, basePixelSize);
 
-		console.log(`Pixel dessiné: x=${x}, y=${y}, couleur=${color}, zoom=${zoomLevel}`);
-	}, [zoomLevel, basePixelSize]);
+		console.log(`Pixel dessiné: x=${x}, y=${y}, couleur=${color}`);
+	}, [basePixelSize]);
 
 	// Redessiner tout le canvas - seulement lors des changements de zoom
 	const redrawCanvas = useCallback(() => {
@@ -106,12 +103,9 @@ function Board() {
 		const canvas = canvasRef.current;
 		const ctx = canvas.getContext('2d');
 
-		// Taille actuelle des pixels
-		const currentPixelSize = basePixelSize * zoomLevel;
-
-		// Définir les dimensions du canvas
-		canvas.width = boardInfo.width * currentPixelSize;
-		canvas.height = boardInfo.height * currentPixelSize;
+		// Définir la taille de base du canvas (sans zoom)
+		canvas.width = boardInfo.width * basePixelSize;
+		canvas.height = boardInfo.height * basePixelSize;
 
 		// Effacer le canvas
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -122,62 +116,57 @@ function Board() {
 
 		console.log(`Redessinage complet du canvas avec zoom=${zoomLevel}`);
 
-		// Dessiner tous les pixels
+		// Dessiner tous les pixels à leur taille de base
 		let pixelsDrawn = 0;
 		Object.entries(pixelsStateRef.current).forEach(([key, color]) => {
 			const [x, y] = key.split('_').map(Number);
 
 			// Dessiner le pixel
-			const canvasX = x * currentPixelSize;
-			const canvasY = y * currentPixelSize;
+			const canvasX = x * basePixelSize;
+			const canvasY = y * basePixelSize;
 
 			ctx.fillStyle = color;
-			ctx.fillRect(canvasX, canvasY, currentPixelSize, currentPixelSize);
+			ctx.fillRect(canvasX, canvasY, basePixelSize, basePixelSize);
 			pixelsDrawn++;
 		});
 
-		console.log(`Total de ${pixelsDrawn} pixels redessinés avec zoom=${zoomLevel}`);
-	}, [boardInfo, zoomLevel, basePixelSize]);
+		console.log(`Total de ${pixelsDrawn} pixels redessinés`);
+	}, [boardInfo, basePixelSize]);
 
 	// Gestion du zoom avec la molette de la souris
 	const handleWheel = useCallback((event) => {
-		// Récupérer la position du curseur par rapport au canvas
-		const rect = canvasRef.current.getBoundingClientRect();
-		const mouseX = event.clientX - rect.left;
-		const mouseY = event.clientY - rect.top;
 
-		// Position du curseur sur le canvas réel (en tenant compte du zoom actuel)
-		const canvasX = mouseX - viewPosition.x;
-		const canvasY = mouseY - viewPosition.y;
+		// Récupérer la position du curseur par rapport au canvas container
+		const containerRect = canvasRef.current.parentElement.getBoundingClientRect();
+		const mouseX = event.clientX - containerRect.left;
+		const mouseY = event.clientY - containerRect.top;
 
-		// Position du curseur en "unités de board"
-		const boardX = canvasX / pixelSize;
-		const boardY = canvasY / pixelSize;
+		// Déterminer les coordonnées du point sous le curseur avant le zoom
+		// en tenant compte de la position actuelle du canvas
+		const pointXBeforeZoom = (mouseX - viewPosition.x) / (basePixelSize * zoomLevel);
+		const pointYBeforeZoom = (mouseY - viewPosition.y) / (basePixelSize * zoomLevel);
 
-		// Calcul du nouveau niveau de zoom
-		const zoomChange = event.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP;
-		const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoomLevel + zoomChange));
+		// Calculer le nouveau niveau de zoom avec une transition plus douce
+		const zoomFactor = event.deltaY < 0 ? 1.1 : 0.9; // Plus doux que ZOOM_STEP fixe
+		const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoomLevel * zoomFactor));
 
 		if (newZoom !== zoomLevel) {
-			// Calculer les nouvelles coordonnées du point sous le curseur
-			const newPixelSize = basePixelSize * newZoom;
-			const newCanvasX = boardX * newPixelSize;
-			const newCanvasY = boardY * newPixelSize;
+			// Calculer la position du même point après le zoom
+			const pointXAfterZoom = pointXBeforeZoom * basePixelSize * newZoom;
+			const pointYAfterZoom = pointYBeforeZoom * basePixelSize * newZoom;
 
-			// Ajuster la position pour maintenir le point sous le curseur
-			const newViewX = mouseX - newCanvasX;
-			const newViewY = mouseY - newCanvasY;
+			// Ajuster la position pour que le point reste sous le curseur
+			const newViewX = mouseX - pointXAfterZoom;
+			const newViewY = mouseY - pointYAfterZoom;
 
+			// Mise à jour du zoom et de la position avec animation
 			setZoomLevel(newZoom);
 			setViewPosition({ x: newViewX, y: newViewY });
 
-			if (zoomChange > 0) {
-				logEvent(`Zoom augmenté à ${Math.round(newZoom * 100)}%`);
-			} else {
-				logEvent(`Zoom diminué à ${Math.round(newZoom * 100)}%`);
-			}
+			// Log de l'événement
+			logEvent(`Zoom ${newZoom > zoomLevel ? 'augmenté' : 'diminué'} à ${Math.round(newZoom * 100)}%`);
 		}
-	}, [zoomLevel, viewPosition, pixelSize, basePixelSize, logEvent]);
+	}, [zoomLevel, viewPosition, basePixelSize, logEvent]);
 
 	// Récupération des informations utilisateur
 	useEffect(() => {
@@ -471,7 +460,8 @@ function Board() {
 						ref={canvasRef}
 						className={`board-canvas ${isPanning ? 'panning' : ''}`}
 						style={{
-							transform: `translate(${viewPosition.x}px, ${viewPosition.y}px)`
+							transform: `translate(${viewPosition.x}px, ${viewPosition.y}px) scale(${zoomLevel})`,
+							transformOrigin: '0 0'
 						}}
 						onClick={handleCanvasClick}
 						onContextMenu={handleContextMenu}
@@ -497,7 +487,7 @@ function Board() {
 
 					<div className="board-details">
 						<p>Dimensions: {boardInfo.width} x {boardInfo.height}</p>
-						<p>Couleur sélectionnée: <span style={{ backgroundColor: selectedColor }} className="color-preview"></span></p>
+						<p>Couleur sélectionnée: <span style={{backgroundColor: selectedColor }} className="color-preview"></span></p>
 						<p>Position: ({Math.floor(-viewPosition.x / pixelSize)}, {Math.floor(-viewPosition.y / pixelSize)})</p>
 						<p>Zoom: {Math.round(zoomLevel * 100)}%</p>
 						<p>Mode: {isPanning ? 'Déplacement' : 'Placement de pixels'}</p>
