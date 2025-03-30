@@ -1,7 +1,7 @@
 const PixelBoard = require("../models/PixelBoard");
 const Chunk = require("../models/Chunk");
 const PixelModification = require("../models/PixelModification");
-const { getUser } = require("../services/userService");
+const { getUser } = require("../services/UserService");
 const { addUserPixel } = require("./UserService");
 const {generateSnapshot, shouldUpdateSnapshot, getSnapshot} = require("./SnapshotService");
 
