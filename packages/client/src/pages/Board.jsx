@@ -268,6 +268,15 @@ function Board() {
 
 	}, [boardInfo, zoomLevel, redrawCanvas]); // Redessine seulement quand le zoom change
 
+	// Gestion du scroll
+	useEffect(() => {
+		document.body.style.overflow = "hidden"; // Désactive le scroll
+
+		return () => {
+			document.body.style.overflow = "auto"; // Rétablit le scroll
+		};
+	}, []);
+
 	// Empêcher l'ouverture du menu contextuel lors du clic droit
 	const handleContextMenu = useCallback((event) => {
 		event.preventDefault();
