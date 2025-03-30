@@ -587,9 +587,9 @@ function Board() {
 						<div
 							className="pixel-tooltip"
 							style={{
-								position: 'absolute',
-								left: `${pixelTooltip.mouseX}px`,
-								top: `${pixelTooltip.mouseY}px`,
+								position: 'fixed',
+								top: pixelTooltip.mouseY,
+								left: pixelTooltip.mouseX + 10,
 								backgroundColor: 'rgba(0, 0, 0, 0.8)',
 								color: 'white',
 								padding: '5px 8px',
