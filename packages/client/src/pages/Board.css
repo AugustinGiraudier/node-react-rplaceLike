@@ -4,10 +4,7 @@
 	height: 100%;
 	padding: 1rem;
 }
-body {
-	margin: 0;
-	overflow: hidden;
-}
+
 .board-header {
 	display: flex;
 	justify-content: space-between;
@@ -72,14 +69,15 @@ body {
 	flex-wrap: wrap;
 	gap: 0.5rem;
 	margin-bottom: 1rem;
-	padding: 0.5rem;
+	padding: 0.5rem 0 0.5rem 1rem;
 	background-color: rgba(0, 0, 0, 0.05);
 	border-radius: 8px;
+	max-height: 94%;
 }
 
 .color-option {
-	width: 2rem;
-	height: 2rem;
+	width: 1.8rem;
+	height: 1.8rem;
 	border-radius: 4px;
 	cursor: pointer;
 	transition: transform 0.1s, box-shadow 0.1s;
@@ -96,7 +94,6 @@ body {
 
 .canvas-container {
 	flex: 1;
-	overflow: auto;
 	border: 1px solid #ccc;
 	border-radius: 4px;
 	background-color: #f5f5f5;
@@ -105,6 +102,7 @@ body {
 	align-items: center;
 	position: relative;
 	overflow: hidden;
+	max-height: 96%;
 }
 
 .board-canvas {
@@ -228,7 +226,7 @@ body {
 
 .zoom-controls {
 	position: absolute;
-	bottom: 10px;
+	bottom: 20px;
 	left: 10px;
 	display: flex;
 	align-items: center;
