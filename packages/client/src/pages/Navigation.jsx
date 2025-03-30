@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, Route, Routes, useLocation, Navigate } from 'react-router-dom';
-import '../styles/Navigation.css';
+import './Navigation.css';
 
 import Homepage from './Homepage';
 import Login from './Login';

@@ -30,6 +30,10 @@
 	color: #333;
 }
 
+.dark-theme .profile-header h1 {
+	color: #f0f0f0;
+}
+
 .edit-profile-btn {
 	position: absolute;
 	right: 0;
@@ -56,7 +60,7 @@
 }
 
 .dark-theme .profile-card {
-	background-color: #333;
+	background-color: #2a2a2a;
 	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
@@ -73,6 +77,7 @@
 	color: #f0f0f0;
 	border-color: #555;
 }
+
 .profile-info {
 	display: flex;
 	flex-direction: column;
@@ -91,7 +96,7 @@
 }
 
 .dark-theme .info-label {
-	color: #f0f0f0;
+	color: #bbbbbb;
 }
 
 .info-value {
@@ -118,7 +123,7 @@
 }
 
 .dark-theme .stat-box {
-	background-color: #333;
+	background-color: #3a3a3a;
 }
 
 .stat-box h3 {
@@ -130,6 +135,10 @@
 .stat-box p {
 	margin: 5px 0 0;
 	color: #666;
+}
+
+.dark-theme .stat-box p {
+	color: #bbbbbb;
 }
 
 .contribution-list {
@@ -146,7 +155,7 @@
 }
 
 .dark-theme .contribution-item {
-	background-color: #333;
+	background-color: #3a3a3a;
 }
 
 .contribution-name {
@@ -166,6 +175,10 @@
 	font-size: 0.9rem;
 }
 
+.dark-theme .contribution-details {
+	color: #bbbbbb;
+}
+
 .no-contributions {
 	color: #666;
 	font-style: italic;
@@ -173,11 +186,19 @@
 	margin: 20px 0;
 }
 
+.dark-theme .no-contributions {
+	color: #bbbbbb;
+}
+
 .loading {
 	text-align: center;
 	padding: 40px;
 	color: #666;
 	font-size: 1.2rem;
+}
+
+.dark-theme .loading {
+	color: #bbbbbb;
 }
 
 .error-message {
@@ -189,6 +210,11 @@
 	margin: 20px 0;
 }
 
+.dark-theme .error-message {
+	background-color: rgba(229, 57, 53, 0.2);
+	color: #ff6b6b;
+}
+
 .success-message {
 	background-color: #e8f5e9;
 	color: #2e7d32;
@@ -197,6 +223,12 @@
 	text-align: center;
 	margin: 20px 0;
 	border: 1px solid #a5d6a7;
+}
+
+.dark-theme .success-message {
+	background-color: rgba(46, 125, 50, 0.2);
+	color: #81c784;
+	border-color: rgba(165, 214, 167, 0.3);
 }
 
 /* Styles pour le formulaire d'édition */
@@ -215,6 +247,10 @@
 	color: #555;
 }
 
+.dark-theme .form-group label {
+	color: #bbbbbb;
+}
+
 .form-group input {
 	width: 100%;
 	padding: 12px;
@@ -222,6 +258,12 @@
 	border-radius: 6px;
 	font-size: 16px;
 	transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.dark-theme .form-group input {
+	background-color: #3a3a3a;
+	border-color: #555;
+	color: #f0f0f0;
 }
 
 .form-group input:focus {
@@ -259,8 +301,17 @@
 	color: #333;
 }
 
+.dark-theme .cancel-btn {
+	background-color: #444;
+	color: #f0f0f0;
+}
+
 .cancel-btn:hover {
 	background-color: #e1e1e1;
+}
+
+.dark-theme .cancel-btn:hover {
+	background-color: #555;
 }
 
 @media (max-width: 600px) {
