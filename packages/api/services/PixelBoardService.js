@@ -154,6 +154,11 @@ const getRegion = async (boardId, startX, startY, width, height) => {
  */
 
 const updatePixel = async (boardId, x, y, color, userId) => {
+
+	if(!await checkPlacementDelay(userId, boardId)){
+		throw new Error(`Cannot place Pixel...`);
+	};
+
 	const chunkSize = 16;
 	const chunkX = Math.floor(x / chunkSize) * chunkSize;
 	const chunkY = Math.floor(y / chunkSize) * chunkSize;
@@ -247,6 +252,60 @@ const updatePixel = async (boardId, x, y, color, userId) => {
 
 	return { x, y, color, userId };
 };
+
+/**
+ * Vérifie si l'utilisateur respecte le délai de placement pour un board spécifique
+ * @param {string} userId - L'identifiant de l'utilisateur
+ * @param {string} boardId - L'identifiant du board
+ * @throws {Error} - Lance une erreur si le délai n'est pas respecté
+ * @returns {Promise<boolean>} - Retourne true si l'utilisateur peut placer un pixel
+ */
+async function checkPlacementDelay(userId, boardId) {
+	
+	// Récupérer les informations du board
+	const board = await PixelBoard.findById(boardId);
+	if (!board) {
+		throw new Error(`Board non trouvé (ID: ${boardId})`);
+	}
+	
+	// Vérifier si le board est actif
+	if (board.status !== 'active') {
+		throw new Error(`Ce board n'est pas actif (statut: ${board.status})`);
+	}
+	
+	// Récupérer le dernier placement de l'utilisateur sur ce board
+	const lastPlacement = await PixelModification.findOne({
+		userId: userId,
+		boardId: boardId
+	})
+	.sort({ timestamp: -1 })
+	.lean();
+	
+	// Si l'utilisateur n'a jamais placé de pixel sur ce board, il peut en placer un
+	if (!lastPlacement) {
+		return true;
+	}
+		
+	// Calculer le temps écoulé depuis le dernier placement (en millisecondes)
+	const now = new Date();
+	const lastPlacementTime = new Date(lastPlacement.timestamp);
+	const timeElapsed = now - lastPlacementTime;
+
+	console.log(timeElapsed);
+	
+	// Convertir le délai de placement du board en millisecondes
+	// Supposons que placementDelay est stocké en secondes dans le schéma
+	const requiredDelay = board.placementDelay;
+	
+	// Vérifier si le temps écoulé est inférieur au délai requis
+	if (timeElapsed < requiredDelay) {
+		return false;
+	}
+	
+	// Si nous arrivons ici, l'utilisateur peut placer un pixel
+	return true;
+}
+
 // ----------- ADMIN -------------
 
 /**
