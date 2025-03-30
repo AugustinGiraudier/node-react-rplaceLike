@@ -26,8 +26,18 @@ const sockets = (io) => {
 				console.log(`User ${socket.id} joined ${roomName}`);
 
 				try {
-					// Zone de base de 32x32 a changer pour le board entier en passant en paramètre les dimensions de la region / board
-					const initialData = await PixelBoardService.getRegion(boardId, 0, 0, 32, 32);
+					// Récupérer les informations du board pour obtenir ses dimensions
+					const board = await PixelBoardService.getBoard(boardId);
+					if (!board) {
+						throw new Error('Board not found');
+					}
+
+					console.log(`Loading full board data for board ${boardId} (${board.width}x${board.height})`);
+
+					// Récupérer toutes les données du board au lieu d'une région fixe
+					const initialData = await PixelBoardService.getRegion(boardId, 0, 0, board.width, board.height);
+					console.log(`Sending board data with ${Object.keys(initialData.pixels || {}).length} pixels`);
+
 					socket.emit('board-data', initialData);
 				} catch (error) {
 					console.error('Error sending initial board data:', error);
