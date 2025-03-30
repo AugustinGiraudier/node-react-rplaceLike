@@ -357,3 +357,36 @@
 .dark-theme .export-controls button:hover {
     background-color: #444;
 }
+.pixel-tooltip {
+	background-color: #111;
+	color: white;
+	padding: 8px 10px;
+	border-radius: 0;
+	font-size: 12px;
+	font-family: 'Courier New', monospace;
+	box-shadow: 0 0 0 2px white, 0 0 0 4px #111;
+	border: 2px solid #111;
+	pointer-events: none;
+	animation: pixelFadeIn 0.2s steps(5) forwards;
+	max-width: 220px;
+	white-space: nowrap;
+	image-rendering: pixelated;
+	image-rendering: crisp-edges;
+	transform: scale(1);
+	letter-spacing: 0.5px;
+}
+
+.dark-theme .pixel-tooltip {
+	background-color: #222;
+	box-shadow: 0 0 0 2px #555, 0 0 0 4px #222;
+	border: 2px solid #222;
+}
+
+@keyframes pixelFadeIn {
+	0% { opacity: 0; transform: scale(0.95); }
+	20% { opacity: 0.2; }
+	40% { opacity: 0.4; }
+	60% { opacity: 0.6; }
+	80% { opacity: 0.8; }
+	100% { opacity: 1; transform: scale(1); }
+}

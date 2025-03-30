@@ -32,6 +32,14 @@ const getAllBoards = async () => {
 		snapshot: 0
 	}).populate('author', "username");
 
+	await boards.forEach(async (board) => {
+		if (board.endingDate && new Date() > board.endingDate) {
+			board.status = 'finished';
+			await board.save();
+		}
+
+		board.timeBeforeEnd = (board.endingDate - new Date()) / 1000 / 60;
+	});
 	for (const board of boards) {
 		if (shouldUpdateSnapshot(board)) {
 			try {
@@ -43,16 +51,6 @@ const getAllBoards = async () => {
 			}
 		}
 	}
-
-	await boards.forEach(async (board) => {
-		if (board.endingDate && new Date() > board.endingDate) {
-			board.status = 'finished';
-			await board.save();
-		}
-
-		board.timeBeforeEnd = (board.endingDate - new Date()) / 1000 / 60;
-	});
-
 	return boards;
 };
 
@@ -605,16 +603,31 @@ const resizeBoard = async (board, originalWidth, originalHeight) => {
 		}
 	}
 
+	// Exécuter les opérations d'ajout en lot si nécessaire
 	if (bulkOps.length > 0) {
 		await Chunk.bulkWrite(bulkOps);
 	}
 
+	// 3. Mettre à jour la liste des chunks dans le board
 	const chunks = await Chunk.find({ boardId: board._id }, '_id', { lean: true });
 	board.chunks = chunks.map(chunk => chunk._id);
 
 	await board.save();
 };
 
+const getUserOfLastPixelPlaced = async (boardId, x, y) => {
+	const board = await PixelBoard.findById(boardId);
+	if (!board) throw new Error("Board not found");
+	console.log("boardId :", boardId, " x:", x, "y:", y);
+	const lastModification = await PixelModification.findOne({
+		boardId,
+		x,
+		y
+	}).sort({ timestamp: -1 }).populate('userId', "username");
+	console.log(lastModification);
+	if (!lastModification) throw new Error("No modification found for this pixel");
+	return lastModification;
+};
 
 const regenerateSnapshot = async (boardId) => {
 	try {
@@ -645,5 +658,6 @@ module.exports = {
 	boardTimeLeft,
 	updateBoard,
 	regenerateSnapshot,
-	getBoardSnapshot
+	getBoardSnapshot,
+	getUserOfLastPixelPlaced
 };

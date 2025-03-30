@@ -38,6 +38,18 @@ function Board() {
 	const [panStartPosition, setPanStartPosition] = useState({ x: 0, y: 0 });
 
 
+
+	const [pixelTooltip, setPixelTooltip] = useState({
+		visible: false,
+		x: 0,
+		y: 0,
+		author: '',
+		loading: false,
+		mouseX: 0,
+		mouseY: 0
+	});
+
+
 	const pixelsStateRef = useRef({});
 
 
@@ -120,7 +132,13 @@ function Board() {
 		console.log(`Total de ${pixelsDrawn} pixels redessinés`);
 	}, [boardInfo, zoomLevel]);
 
-
+	const debounce = (func, delay) => {
+		let debounceTimer;
+		return function(...args) {
+			clearTimeout(debounceTimer);
+			debounceTimer = setTimeout(() => func.apply(this, args), delay);
+		};
+	};
 	const handleWheel = useCallback((event) => {
 		event.preventDefault();
 
@@ -153,8 +171,65 @@ function Board() {
 			y: viewPosition.y + newViewY
 		});
 	}, [zoomLevel, viewPosition]);
+	const handleMouseHover = useCallback(
+		debounce(async (event) => {
+			if (!canvasRef.current || !boardInfo) return;
+			const canvas = canvasRef.current;
+			const rect = canvas.getBoundingClientRect();
 
+			// Calculate the position of the hovered pixel
+			const currentPixelSize = basePixelSize * zoomLevel;
+			const x = Math.floor((event.clientX - rect.left) / currentPixelSize);
+			const y = Math.floor((event.clientY - rect.top) / currentPixelSize);
+			// Check if the coordinates are within the canvas boundaries
+			if (x < 0 || y < 0 || x >= boardInfo.width || y >= boardInfo.height) {
+				setPixelTooltip(prev => ({ ...prev, visible: false }));
+				return;
+			}
 
+			// Set loading state
+			setPixelTooltip({
+				visible: true,
+				x: x,
+				y: y,
+				author: '',
+				timestamp: '',
+				loading: true,
+				mouseX: event.clientX,
+				mouseY: event.clientY
+			});
+
+			try {
+				const response = await fetch(`${VITE_API_URL}/boards/lastpixel/${id}/${x}/${y}`, {
+					method: 'GET',
+				});
+
+				if (!response.ok) {
+					throw new Error('Failed to fetch pixel author');
+				}
+
+				const data = await response.json();
+				console.log('Pixel author data:', data);
+				console.log(data.userId)
+				setPixelTooltip(prev => ({
+					...prev,
+					author: data.userId ? data.userId.username : 'Unknown',
+					timestamp: data.timestamp ? data.timestamp : 'Unknown',
+					loading: false
+				}));
+			} catch {
+				console.log("Nobody claimed this pixel");
+			}
+		}, 200),
+		[boardInfo, id, basePixelSize, zoomLevel]
+	);
+	const handleCanvasMouseLeave = useCallback(() => {
+		setPixelTooltip(prev => ({ ...prev, visible: false }));
+
+		if (isPanning) {
+			setIsPanning(false);
+		}
+	}, [isPanning]);
 	useEffect(() => {
 		try {
 			const userString = localStorage.getItem('user');
@@ -489,20 +564,49 @@ function Board() {
 					</div>
 
 					<canvas
-						ref={canvasRef}
-						className={`board-canvas ${isPanning ? 'panning' : ''}`}
-						style={{
-							transform: `translate(${viewPosition.x}px, ${viewPosition.y}px) scale(${zoomLevel})`,
-							transformOrigin: '0 0'
-						}}
-						onClick={handleCanvasClick}
-						onContextMenu={handleContextMenu}
-						onMouseDown={handleMouseDown}
-						onMouseMove={handleMouseMove}
-						onMouseUp={handleMouseUp}
-						onMouseLeave={handleMouseLeave}
-						onWheel={handleWheel}
-					/>
+                        ref={canvasRef}
+                        className={`board-canvas ${isPanning ? 'panning' : ''}`}
+                        style={{
+                            transform: `translate(${viewPosition.x}px, ${viewPosition.y}px) scale(${zoomLevel})`,
+                            transformOrigin: '0 0'
+                        }}
+                        onClick={handleCanvasClick}
+                        onContextMenu={handleContextMenu}
+                        onMouseDown={handleMouseDown}
+                        onMouseMove={(e) => {
+                            handleMouseMove(e);
+                            handleMouseHover(e);
+                        }}
+                        onMouseUp={handleMouseUp}
+                        onMouseLeave={handleCanvasMouseLeave}
+                        onWheel={handleWheel}
+                    />
+					{/* Pixel Author Tooltip */}
+                    {pixelTooltip.visible && (
+                        <div
+                            className="pixel-tooltip"
+                            style={{
+                                position: 'absolute',
+                                left: `${pixelTooltip.mouseX}px`,
+                                top: `${pixelTooltip.mouseY}px`,
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                color: 'white',
+                                padding: '5px 8px',
+                                borderRadius: '4px',
+                                fontSize: '12px',
+                                zIndex: 1000,
+                                pointerEvents: 'none'
+                            }}
+                        >
+                            {pixelTooltip.loading ? 'Nobody has claimed this pixel' : (
+                                <>
+                                    Position: ({pixelTooltip.x}, {pixelTooltip.y})<br/>
+                                    Placed by: {pixelTooltip.author}<br/>
+									At : {new Date(pixelTooltip.timestamp).toLocaleString()}
+                                </>
+                            )}
+                        </div>
+                    )}
 				</div>
 			</div>
 		</div>
