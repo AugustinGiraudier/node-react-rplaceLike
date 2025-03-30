@@ -20,7 +20,6 @@ function Board() {
 	const [connectionStatus, setConnectionStatus] = useState('Disconnected');
 	const [boardInfo, setBoardInfo] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
-	const [eventLog, setEventLog] = useState([]);
 	const [userData, setUserData] = useState(null);
 	const [initialDataLoaded, setInitialDataLoaded] = useState(false);
 
@@ -45,33 +44,25 @@ function Board() {
 	// Référence pour stocker la dernière data reçue du serveur
 	const lastBoardDataRef = useRef(null);
 
-	// Fonction pour ajouter un événement au log
-	const logEvent = useCallback((message) => {
-		setEventLog(prev => [...prev.slice(-19), { time: new Date().toLocaleTimeString(), message }]);
-	}, []);
-
 	// Fonctions pour gérer le zoom
 	const handleZoomIn = useCallback(() => {
 		setZoomLevel(prevZoom => {
 			const newZoom = Math.min(prevZoom + ZOOM_STEP, MAX_ZOOM);
-			logEvent(`Zoom augmenté à ${Math.round(newZoom * 100)}%`);
 			return newZoom;
 		});
-	}, [logEvent]);
+	}, []);
 
 	const handleZoomOut = useCallback(() => {
 		setZoomLevel(prevZoom => {
 			const newZoom = Math.max(prevZoom - ZOOM_STEP, MIN_ZOOM);
-			logEvent(`Zoom diminué à ${Math.round(newZoom * 100)}%`);
 			return newZoom;
 		});
-	}, [logEvent]);
+	}, []);
 
 	const handleResetZoom = useCallback(() => {
 		setZoomLevel(1);
 		setViewPosition({ x: 0, y: 0 });
-		logEvent("Zoom et position réinitialisés");
-	}, [logEvent]);
+	}, []);
 
 	// Dessiner un pixel individuel - optimisé pour ne pas redessiner tout le canvas
 	const drawPixel = useCallback((x, y, color) => {
@@ -131,7 +122,7 @@ function Board() {
 		});
 
 		console.log(`Total de ${pixelsDrawn} pixels redessinés`);
-	}, [boardInfo, basePixelSize]);
+	}, [boardInfo, zoomLevel]);
 
 	// Gestion du zoom avec la molette de la souris
 	const handleWheel = useCallback((event) => {
@@ -163,10 +154,8 @@ function Board() {
 			setZoomLevel(newZoom);
 			setViewPosition({ x: newViewX, y: newViewY });
 
-			// Log de l'événement
-			logEvent(`Zoom ${newZoom > zoomLevel ? 'augmenté' : 'diminué'} à ${Math.round(newZoom * 100)}%`);
 		}
-	}, [zoomLevel, viewPosition, basePixelSize, logEvent]);
+	}, [zoomLevel, viewPosition, basePixelSize]);
 
 	// Récupération des informations utilisateur
 	useEffect(() => {
@@ -175,14 +164,11 @@ function Board() {
 			if (userString) {
 				const user = JSON.parse(userString);
 				setUserData(user);
-				logEvent(`Utilisateur ${user.username} connecté`);
-			} else {
-				logEvent("Aucun utilisateur connecté");
 			}
 		} catch (error) {
 			console.error("Erreur lors de la récupération des données utilisateur:", error);
 		}
-	}, [logEvent]);
+	}, []);
 
 	// Récupération des informations du board
 	useEffect(() => {
@@ -194,11 +180,10 @@ function Board() {
 					throw new Error(`Échec de la récupération du board: ${response.statusText}`);
 				}
 				const data = await response.json();
+				console.log(data.timeBeforeEnd / 60 / 24);
 				setBoardInfo(data);
-				logEvent(`Board '${data.name}' chargé (${data.width}x${data.height})`);
 			} catch (error) {
 				console.error('Erreur lors de la récupération des données:', error);
-				logEvent(`Erreur: ${error.message}`);
 			} finally {
 				setIsLoading(false);
 			}
@@ -212,7 +197,7 @@ function Board() {
 				socketRef.current.disconnect();
 			}
 		};
-	}, [id, logEvent]);
+	}, [id]);
 
 	// Initialisation de la connexion WebSocket une seule fois
 	useEffect(() => {
@@ -222,7 +207,6 @@ function Board() {
 
 		socket.on('connect', () => {
 			setConnectionStatus('Connected');
-			logEvent('Connecté au serveur');
 
 			// Rejoindre le board spécifique
 			socket.emit('join-board', id);
@@ -230,22 +214,15 @@ function Board() {
 
 		socket.on('disconnect', () => {
 			setConnectionStatus('Disconnected');
-			logEvent('Déconnecté du serveur');
-		});
-
-		socket.on('message', (msg) => {
-			logEvent(`Serveur: ${msg}`);
 		});
 
 		socket.on('pixel-update', (data) => {
-			logEvent(`Pixel mis à jour en (${data.x},${data.y})`);
 
 			// Mettre à jour l'état des pixels et dessiner uniquement le pixel modifié
 			drawPixel(data.x, data.y, data.color);
 		});
 
 		socket.on('board-data', (data) => {
-			logEvent(`Données du board reçues: ${Object.keys(data.pixels).length} pixels`);
 			console.log('Données du board reçues:', data);
 
 			// Stocker les données pour les réutiliser lors des changements de zoom
@@ -262,19 +239,14 @@ function Board() {
 			redrawCanvas();
 		});
 
-		socket.on('connect_error', (err) => {
-			logEvent(`Erreur de connexion: ${err.message}`);
+		socket.on('connect_error', () => {
 			setConnectionStatus('Error');
-		});
-
-		socket.on('error', (err) => {
-			logEvent(`Erreur serveur: ${err.message}`);
 		});
 
 		return () => {
 			socket.disconnect();
 		};
-	}, [id, logEvent, drawPixel]);
+	}, [id, drawPixel, redrawCanvas]);
 
 	useEffect(() => {
 		if (initialDataLoaded && boardInfo && canvasRef.current) {
@@ -362,7 +334,6 @@ function Board() {
 
 		// Vérifier si l'utilisateur est connecté
 		if (!userData) {
-			logEvent("Erreur: Vous devez être connecté pour placer un pixel");
 			return;
 		}
 
@@ -384,11 +355,8 @@ function Board() {
 			return;
 		}
 
-		logEvent(`Placement de pixel en (${x},${y}) avec la couleur ${selectedColor}`);
-
 		// Vérifier si l'utilisateur est connecté
 		if (!userData || !userData.id) {
-			logEvent("Erreur: Vous devez être connecté pour placer un pixel");
 			return;
 		}
 
@@ -403,7 +371,7 @@ function Board() {
 
 		// Feedback visuel immédiat (optimiste) - mise à jour d'un seul pixel
 		drawPixel(x, y, selectedColor);
-	}, [boardInfo, id, basePixelSize, zoomLevel, selectedColor, logEvent, userData, viewPosition, isPanning, drawPixel]);
+	}, [boardInfo, id, basePixelSize, zoomLevel, selectedColor, userData, viewPosition, isPanning, drawPixel]);
 
 	// Rendu du composant
 	if (isLoading) {
@@ -471,27 +439,6 @@ function Board() {
 						onMouseLeave={handleMouseLeave}
 						onWheel={handleWheel}
 					/>
-				</div>
-
-				<div className="board-info-panel">
-					<div className="event-log">
-						<h3>Journal d'événements</h3>
-						<ul>
-							{eventLog.map((event, index) => (
-								<li key={index}>
-									<span className="time">[{event.time}]</span> {event.message}
-								</li>
-							))}
-						</ul>
-					</div>
-
-					<div className="board-details">
-						<p>Dimensions: {boardInfo.width} x {boardInfo.height}</p>
-						<p>Couleur sélectionnée: <span style={{backgroundColor: selectedColor }} className="color-preview"></span></p>
-						<p>Position: ({Math.floor(-viewPosition.x / pixelSize)}, {Math.floor(-viewPosition.y / pixelSize)})</p>
-						<p>Zoom: {Math.round(zoomLevel * 100)}%</p>
-						<p>Mode: {isPanning ? 'Déplacement' : 'Placement de pixels'}</p>
-					</div>
 				</div>
 			</div>
 		</div>
