@@ -173,7 +173,12 @@ function Board() {
 	}, [zoomLevel, viewPosition]);
 	const handleMouseHover = useCallback(
 		debounce(async (event) => {
-			if (!canvasRef.current || !boardInfo) return;
+			// Si le zoom est inférieur à 150%, ne pas afficher le tooltip
+			if (!canvasRef.current || !boardInfo || zoomLevel < 1.5) {
+				setPixelTooltip(prev => ({ ...prev, visible: false }));
+				return;
+			}
+
 			const canvas = canvasRef.current;
 			const rect = canvas.getBoundingClientRect();
 
@@ -181,6 +186,7 @@ function Board() {
 			const currentPixelSize = basePixelSize * zoomLevel;
 			const x = Math.floor((event.clientX - rect.left) / currentPixelSize);
 			const y = Math.floor((event.clientY - rect.top) / currentPixelSize);
+
 			// Check if the coordinates are within the canvas boundaries
 			if (x < 0 || y < 0 || x >= boardInfo.width || y >= boardInfo.height) {
 				setPixelTooltip(prev => ({ ...prev, visible: false }));
@@ -209,8 +215,6 @@ function Board() {
 				}
 
 				const data = await response.json();
-				console.log('Pixel author data:', data);
-				console.log(data.userId)
 				setPixelTooltip(prev => ({
 					...prev,
 					author: data.userId ? data.userId.username : 'Unknown',
@@ -409,13 +413,6 @@ function Board() {
 	}, [isPanning]);
 
 
-	const handleMouseLeave = useCallback(() => {
-		if (isPanning) {
-			setIsPanning(false);
-			document.body.style.cursor = 'auto';
-		}
-	}, [isPanning]);
-
 
 	const handleCanvasClick = useCallback((event) => {
 		if (!canvasRef.current || !socketRef.current || !boardInfo || event.button !== 0 || isPanning) return;
@@ -581,32 +578,31 @@ function Board() {
                         onMouseLeave={handleCanvasMouseLeave}
                         onWheel={handleWheel}
                     />
-					{/* Pixel Author Tooltip */}
-                    {pixelTooltip.visible && (
-                        <div
-                            className="pixel-tooltip"
-                            style={{
-                                position: 'absolute',
-                                left: `${pixelTooltip.mouseX}px`,
-                                top: `${pixelTooltip.mouseY}px`,
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                color: 'white',
-                                padding: '5px 8px',
-                                borderRadius: '4px',
-                                fontSize: '12px',
-                                zIndex: 1000,
-                                pointerEvents: 'none'
-                            }}
-                        >
-                            {pixelTooltip.loading ? 'Nobody has claimed this pixel' : (
-                                <>
-                                    Position: ({pixelTooltip.x}, {pixelTooltip.y})<br/>
-                                    Placed by: {pixelTooltip.author}<br/>
+					{pixelTooltip.visible && zoomLevel >= 1.5 && (
+						<div
+							className="pixel-tooltip"
+							style={{
+								position: 'absolute',
+								left: `${pixelTooltip.mouseX}px`,
+								top: `${pixelTooltip.mouseY}px`,
+								backgroundColor: 'rgba(0, 0, 0, 0.8)',
+								color: 'white',
+								padding: '5px 8px',
+								borderRadius: '4px',
+								fontSize: '12px',
+								zIndex: 1000,
+								pointerEvents: 'none'
+							}}
+						>
+							{pixelTooltip.loading ? 'Nobody has claimed this pixel' : (
+								<>
+									Position: ({pixelTooltip.x}, {pixelTooltip.y})<br/>
+									Placed by: {pixelTooltip.author}<br/>
 									At : {new Date(pixelTooltip.timestamp).toLocaleString()}
-                                </>
-                            )}
-                        </div>
-                    )}
+								</>
+							)}
+						</div>
+					)}
 				</div>
 			</div>
 		</div>
