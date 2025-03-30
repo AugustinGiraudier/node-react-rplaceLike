@@ -5,6 +5,7 @@ const pixelBoardSchema = new mongoose.Schema({
 	author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 	creationDate: { type: Date, default: Date.now },
 	endingDate: { type: Date, default: null },
+	timeBeforeEnd: {type: Number, default: 0},
 	status: {
 		type: String,
 		enum: ['creating', 'active', 'non-active', 'finished'],

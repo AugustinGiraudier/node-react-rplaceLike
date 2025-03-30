@@ -18,12 +18,25 @@ const getNameWithMaxLength = (str, n) => {
     return str;
 };
 
+const formatTime = (time) => {
+    if(time < 0){
+        return "0";
+    }
+    if(time > 60 * 24){
+        return `${Math.round(time / 60 / 24)}j`;
+    }
+    if(time > 60){
+        return `${Math.round(time / 60)}h`;
+    }
+    return `${Math.round(time)}m`;
+};
+
 function BoardCard({name, author, time, id}) {
 
     const displayableProps = useMemo(()=> {return {
         name: getNameWithMaxLength(name, 15),
         author: getNameWithMaxLength(author, 15),
-        time: time
+        time: formatTime(time)
     };}, []);
 
     return (
