@@ -227,8 +227,11 @@ function Board() {
 
 	// Initialisation de la connexion WebSocket une seule fois
 	useEffect(() => {
-		// Initialiser la connexion WebSocket
-		socketRef.current = io(VITE_API_URL);
+
+		const baseUrl = VITE_API_URL.replace('/api', '');
+		socketRef.current = io(baseUrl, {
+			path: '/socket.io'
+		});
 		const socket = socketRef.current;
 
 		socket.on('connect', () => {
