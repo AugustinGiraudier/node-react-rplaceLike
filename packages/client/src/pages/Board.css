@@ -4,7 +4,10 @@
 	height: 100%;
 	padding: 1rem;
 }
-
+body {
+	margin: 0;
+	overflow: hidden;
+}
 .board-header {
 	display: flex;
 	justify-content: space-between;
@@ -104,14 +107,12 @@
 	overflow: hidden;
 }
 
-
-
 .board-canvas {
 	image-rendering: pixelated;
 	image-rendering: crisp-edges;
 	cursor: crosshair;
 	box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-
+	transition: transform 0.2s ease-out, width 0.2s ease-out, height 0.2s ease-out;
 }
 
 .board-canvas.panning {
@@ -215,7 +216,6 @@
 		flex-direction: column;
 		width: 3rem;
 		margin-bottom: 0;
-		flex-wrap: nowrap;
 	}
 
 	.board-info-panel {
@@ -291,10 +291,6 @@
 /* Style du mode sombre */
 .dark-theme .zoom-controls {
 	background-color: rgba(255, 255, 255, 0.15);
-}
-
-.dark-theme .zoom-controls span {
-	color: #3498db;
 }
 
 .dark-theme .zoom-controls button {
