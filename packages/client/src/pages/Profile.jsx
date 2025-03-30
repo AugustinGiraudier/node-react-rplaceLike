@@ -65,11 +65,12 @@ function Profile() {
 
 			setContributions({
 				totalPixels: data.totalPixelsPlaced,
-				pixelBoards: data.boardsActivity.map(board => ({
+				pixelBoards: data.boardsActivity.map(board => (console.log(board),
+					{
 					id: board.boardId,
 					name: board.boardName,
 					pixels: board.pixelsPlaced,
-					lastContribution: new Date(board.lastActive).toISOString().split('T')[0]
+					lastContribution: new Date(board.lastActive).toISOString()
 				}))
 			});
 
@@ -321,7 +322,7 @@ function Profile() {
 										<div className="contribution-name">{board.name}</div>
 										<div className="contribution-details">
 											<span>{board.pixels} pixels</span>
-											<span>Last active: {new Date(board.lastContribution).toLocaleDateString()}</span>
+											<span>Last active: {new Date(board.lastContribution).toLocaleString()}</span>
 										</div>
 									</div>
 								))}
