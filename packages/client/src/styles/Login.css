@@ -15,10 +15,19 @@
 	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
+.dark-theme .login-card {
+	background-color: #333;
+	color: #f0f0f0;
+}
+
 .login-card h2 {
 	text-align: center;
 	margin-bottom: 25px;
 	color: #333;
+}
+
+.dark-theme .login-card h2 {
+	color: #f0f0f0;
 }
 
 .form-group {
@@ -39,6 +48,12 @@
 	border-radius: 5px;
 	font-size: 1rem;
 	transition: border-color 0.3s;
+}
+
+.dark-theme input {
+	background-color: #444;
+	color: #f0f0f0;
+	border-color: #555;
 }
 
 .form-group input:focus {
