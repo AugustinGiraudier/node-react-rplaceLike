@@ -62,10 +62,6 @@ function Homepage() {
 			<div className="hero-section">
 				<h1>PixelBoard</h1>
 				<p className="tagline">Create collaborative pixel art, one pixel at a time</p>
-				<div className="auth-buttons">
-					<Link to="/login" className="login-button">Log In</Link>
-					<Link to="/register" className="register-button">Sign Up</Link>
-				</div>
 			</div>
 
 			<div className="stats-section">
