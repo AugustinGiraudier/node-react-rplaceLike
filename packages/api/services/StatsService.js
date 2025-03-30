@@ -14,4 +14,48 @@ const getStats = async () => {
 	};
 };
 
-module.exports = {getStats};
+const getUserStats = async (userId) => {
+	const user = await User.findById(userId);
+	if (!user) {
+		throw new Error("User not found");
+	}
+
+	const totalPixelsPlaced = user.pixelsPlaced;
+	const userModifications = await PixelModification.find({ userId });
+	const boardIds = [...new Set(userModifications.map(mod => mod.boardId.toString()))];
+
+
+	const boards = await PixelBoard.find({ _id: { $in: boardIds } });
+
+
+	const boardsActivity = [];
+	for (const boardId of boardIds) {
+		const board = boards.find(b => b._id.toString() === boardId);
+		if (board) {
+			const pixelCount = await PixelModification.countDocuments({
+				boardId,
+				userId
+			});
+
+			const lastModification = await PixelModification.findOne({
+				boardId,
+				userId
+			}).sort({ timestamp: -1 });
+
+			boardsActivity.push({
+				boardId,
+				boardName: board.name,
+				pixelsPlaced: pixelCount,
+				lastActive: lastModification ? lastModification.timestamp : null
+			});
+		}
+	}
+
+	return {
+		totalPixelsPlaced,
+		boardsJoined: boardIds.length,
+		boardsActivity
+	};
+};
+
+module.exports = {getStats,getUserStats};
