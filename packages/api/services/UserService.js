@@ -28,4 +28,13 @@ const getUsers = async () => {
 	const users = await User.find();
 	return users;
 };
-module.exports = {updateUser,getUser,getUsers};
+const addUserPixel = async (id) => {
+	// increment pixel count
+	const user = await User.findById(id);
+	if (!user) throw new Error("User not found");
+
+	user.pixelsPlaced += 1;
+	await user.save();
+	return user;
+};
+module.exports = {updateUser,getUser,getUsers,addUserPixel};

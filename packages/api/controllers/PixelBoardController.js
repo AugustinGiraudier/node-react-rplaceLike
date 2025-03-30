@@ -90,6 +90,7 @@ exports.deleteBoard = async (req, res) => {
 exports.boardTimeLeft = async (req, res) => {
 	try {
 		const { boardId } = req.body;
+		console.log('boardId', boardId);
 		const timeLeft = await BoardService.boardTimeLeft(boardId);
 		res.json(timeLeft);
 	} catch (error) {

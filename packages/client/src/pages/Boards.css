@@ -1,18 +1,50 @@
-#boards-container{
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    text-decoration: none;
+#boards-container {
+	display: flex;
+	justify-content: center;
+	width: 100%;
+	text-decoration: none;
+	padding: 1rem 0;
 }
 
-#boards-list{
-    width: 80%;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(22%, 1fr));
-    gap: 2rem;
-    padding: 2rem;
+#boards-list {
+	width: 90%;
+	max-width: 1200px;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+	gap: 2rem;
+	padding: 1rem;
 }
 
-#boards-list a{
-    text-decoration: none;
+#boards-list a {
+	text-decoration: none;
+	display: block;
+	height: 100%;
+}
+
+.loading-message, .error-message, .no-boards-message {
+	width: 100%;
+	text-align: center;
+	padding: 2rem;
+	font-size: 1.2rem;
+	color: #666;
+}
+
+.error-message {
+	color: #d9534f;
+}
+
+/* Styles responsifs */
+@media (max-width: 768px) {
+	#boards-list {
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		width: 95%;
+		gap: 1.5rem;
+	}
+}
+
+@media (max-width: 480px) {
+	#boards-list {
+		grid-template-columns: 1fr;
+		width: 90%;
+	}
 }

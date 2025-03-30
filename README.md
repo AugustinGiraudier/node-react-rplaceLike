@@ -1,7 +1,7 @@
 <p align="center">
-<img alt="DataHub" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFIkq-WsefNGX4YRNIy9Qy7sb582r6bpPdzg&s" height="160px" />
+<img alt="DataHub" src="https://play-lh.googleusercontent.com/KbH8-m6-mNI8UOiFnzlnggxcaSUoH-zO94uzjsYdlU6eqgLnjs3nPIuCy0OWftVNffs" height="160px" />
 </p>
-<h1 align="center"> RPlaceLike </h1>
+<h1 align="center"> 🎨 RPlaceLike </h1>
 
 ---
 
@@ -11,51 +11,30 @@ C'est un projet mono-repo pour le projet PixelBoard MBDS 2025. Il contient les p
 - `client`: le frontend du projet
 - `api`: le backend du projet
 
-Vous pouvez utiliser ce squelette pour démarrer votre projet.
-Vous devez éditer le fichier package.json racine :
-- remplacez la propriété name (remplacez xxxx par la première lettre de chaque membre de votre groupe)
-- définissez le dépôt en définissant l'URL de votre projet
-
 ## 📍 Installation
 
 Pour démarrer le projet, vous devez exécuter les commandes suivantes dans le répertoire racine du projet (dans deux terminaux séparés) :
-``` js
-yarn start:client 
+
+*Lancer le client React 🎨*
+```sh
+yarn start:client
 ```
 
-
-## 📍 Prérequis pour la compilation
-
-Pour commencez le projet, vous devez exécuter les commandes suivantes dans le répertoire racine du projet (dans deux terminaux séparés) :
-``` js
-yarn start:client 
+*Lancer l'API backend 🔌*
+```sh
+yarn start:api
 ```
 
-*appelle le script start dans ./packages/client package.json (pour démarrer le client react)*  
+## 🚀 Déploiement
 
-``` js
-yarn start:api 
-```
+**Lien de l'application déployée** : [RPlaceLike](https://moustik.dev/)
 
-*appelle le script start dans ./packages/api package.json (pour démarrer l'api)*
+## 🌟 Bonus ajoutés
 
-## 🚀 Ajout des librairies
-
-Si vous voulez ajouter une librairie, vous pouvez utiliser les commandes suivantes (dans le répertoire racine du projet) :
-``` js
-yarn workspace <client|api> add <package-name> 
-```
-Par exemple pour ajouter `express` au package api vous pouvez exécuter :
-``` js
-yarn workspace api add express
-```
-
-Par exemple pour ajouter une librairie pour devDependencies au package client vous pouvez exécuter :
-``` js
-yarn workspace client add -D <package-name>
-```
-
-
+**Fonctionnalités supplémentaires réalisées dans le projet** :
+- 🔄 **WebSockets** pour visualiser en temps réel le dessin
+- 🌡 **Heatmap** des zones les plus utilisées backend
+- ☁️ **Déploiement** de l'application sur un serveur en ligne
 
 ## ✍️ Auteurs
 
@@ -96,8 +75,7 @@ yarn workspace client add -D <package-name>
     </a>
 </p>
 
-
 ## 📝 License
 
-Copyright © 2025
+📜 **Copyright © 2025**
 

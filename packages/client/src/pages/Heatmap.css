@@ -1,0 +1,59 @@
+/* Ajoutez ces styles à votre fichier Board.css existant */
+
+.heatmap-info {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #333;
+  }
+  
+  .separator {
+    margin: 0 8px;
+    color: #aaa;
+  }
+  
+  .legend {
+    background-color: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 10px;
+  }
+  
+  .legend-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+  
+  .legend-gradient {
+    display: flex;
+    flex-direction: column;
+    margin: 5px 0;
+  }
+  
+  .gradient-bar {
+    height: 20px;
+    width: 100%;
+    border-radius: 3px;
+    background: linear-gradient(to right, rgba(200, 0, 0, 0.3), rgba(255, 0, 0, 1));
+  }
+  
+  .gradient-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 3px;
+  }
+  
+  .legend-description {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 5px;
+  }
+  
+  .tip {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: #555;
+  }
