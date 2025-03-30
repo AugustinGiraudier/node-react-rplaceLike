@@ -243,7 +243,7 @@ function Heatmap() {
 	}
 
 	if (!boardInfo || !heatmapData) {
-		return <div className="board-error">Données non trouvées</div>;
+		return <div className="board-error">Heatmap unavailable</div>;
 	}
 
 	return (
