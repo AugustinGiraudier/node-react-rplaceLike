@@ -16,7 +16,12 @@ const pixelBoardSchema = new mongoose.Schema({
 	chunkSize: { type: Number, required: true },
 	placementDelay: { type: Number, required: true },
 	// Référence aux chunks plutôt que les inclure directement
-	chunks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chunk' }]
+	chunks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chunk' }],
+
+	snapshot: { type: String, default: null }, // Image en format Base64
+	snapshotLastUpdated: { type: Date, default: null }, // Date de dernière mise à jour du snapshot
+	snapshotUpdateInterval: { type: Number, default: 300 }, // Intervalle en secondes (300 = 5 minutes)
+	snapshotMimeType: { type: String, default: 'image/png' } // Type MIME de l'image
 });
 
 // Index pour la recherche par statut
