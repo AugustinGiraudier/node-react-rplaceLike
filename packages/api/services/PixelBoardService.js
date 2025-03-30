@@ -1,6 +1,8 @@
 const PixelBoard = require("../models/PixelBoard");
 const Chunk = require("../models/Chunk");
 const PixelModification = require("../models/PixelModification");
+const { getUser } = require("../services/userService");
+const { addUserPixel } = require("./UserService");
 
 // ----------- GLOBAL -------------
 const COLOR_PALETTE = [
@@ -224,13 +226,15 @@ const updatePixel = async (boardId, x, y, color, userId) => {
 		// Modifier les 4 bits de poids faible
 		byte = (byte & 0xF0) | colorValue;
 	}
-
+	const user = await getUser(userId);
+	if (!user) throw new Error("User not found");
 	console.log(`New byte value: ${byte.toString(16)}`);
 	chunk.data[byteIndex] = byte;
-
 	chunk.markModified('data'); // Important : MongoDB ne détecte pas les modifications dans les Buffer merci claude pour l'info
 	chunk.lastUpdated = new Date();
 	await chunk.save();
+	await addUserPixel(userId);
+	await user.save();
 
 	await PixelModification.create({
 		boardId,

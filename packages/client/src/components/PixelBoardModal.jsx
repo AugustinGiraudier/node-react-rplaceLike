@@ -155,7 +155,7 @@ const PixelBoardModal = ({ isOpen, onClose, onSubmit, initialBoard }) => {
 							name="placementDelay"
 							value={formData.placementDelay}
 							onChange={handleChange}
-							min="0"
+							min="1"
 							className={formErrors.placementDelay ? 'error' : ''}
 						/>
 						{formErrors.placementDelay && <span className="error-message">{formErrors.placementDelay}</span>}
