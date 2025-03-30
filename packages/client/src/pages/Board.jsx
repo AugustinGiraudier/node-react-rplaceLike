@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { useParams } from "react-router-dom";
+import {Link, useParams} from "react-router-dom";
 import { io } from 'socket.io-client';
 
 import './Board.css';
@@ -36,6 +36,18 @@ function Board() {
 	const [viewPosition, setViewPosition] = useState({ x: 0, y: 0 });
 	const [isPanning, setIsPanning] = useState(false);
 	const [panStartPosition, setPanStartPosition] = useState({ x: 0, y: 0 });
+
+
+
+	const [pixelTooltip, setPixelTooltip] = useState({
+		visible: false,
+		x: 0,
+		y: 0,
+		author: '',
+		loading: false,
+		mouseX: 0,
+		mouseY: 0
+	});
 
 
 	const pixelsStateRef = useRef({});
@@ -120,7 +132,13 @@ function Board() {
 		console.log(`Total de ${pixelsDrawn} pixels redessinés`);
 	}, [boardInfo, zoomLevel]);
 
-
+	const debounce = (func, delay) => {
+		let debounceTimer;
+		return function(...args) {
+			clearTimeout(debounceTimer);
+			debounceTimer = setTimeout(() => func.apply(this, args), delay);
+		};
+	};
 	const handleWheel = useCallback((event) => {
 		event.preventDefault();
 
@@ -153,8 +171,69 @@ function Board() {
 			y: viewPosition.y + newViewY
 		});
 	}, [zoomLevel, viewPosition]);
+	const handleMouseHover = useCallback(
+		debounce(async (event) => {
+			// Si le zoom est inférieur à 150%, ne pas afficher le tooltip
+			if (!canvasRef.current || !boardInfo || zoomLevel < 1.5) {
+				setPixelTooltip(prev => ({ ...prev, visible: false }));
+				return;
+			}
 
+			const canvas = canvasRef.current;
+			const rect = canvas.getBoundingClientRect();
 
+			// Calculate the position of the hovered pixel
+			const currentPixelSize = basePixelSize * zoomLevel;
+			const x = Math.floor((event.clientX - rect.left) / currentPixelSize);
+			const y = Math.floor((event.clientY - rect.top) / currentPixelSize);
+
+			// Check if the coordinates are within the canvas boundaries
+			if (x < 0 || y < 0 || x >= boardInfo.width || y >= boardInfo.height) {
+				setPixelTooltip(prev => ({ ...prev, visible: false }));
+				return;
+			}
+
+			// Set loading state
+			setPixelTooltip({
+				visible: true,
+				x: x,
+				y: y,
+				author: '',
+				timestamp: '',
+				loading: true,
+				mouseX: event.clientX,
+				mouseY: event.clientY
+			});
+
+			try {
+				const response = await fetch(`${VITE_API_URL}/boards/lastpixel/${id}/${x}/${y}`, {
+					method: 'GET',
+				});
+
+				if (!response.ok) {
+					throw new Error('Failed to fetch pixel author');
+				}
+
+				const data = await response.json();
+				setPixelTooltip(prev => ({
+					...prev,
+					author: data.userId ? data.userId.username : 'Unknown',
+					timestamp: data.timestamp ? data.timestamp : 'Unknown',
+					loading: false
+				}));
+			} catch {
+				console.log("Nobody claimed this pixel");
+			}
+		}, 200),
+		[boardInfo, id, basePixelSize, zoomLevel]
+	);
+	const handleCanvasMouseLeave = useCallback(() => {
+		setPixelTooltip(prev => ({ ...prev, visible: false }));
+
+		if (isPanning) {
+			setIsPanning(false);
+		}
+	}, [isPanning]);
 	useEffect(() => {
 		try {
 			const userString = localStorage.getItem('user');
@@ -337,13 +416,6 @@ function Board() {
 	}, [isPanning]);
 
 
-	const handleMouseLeave = useCallback(() => {
-		if (isPanning) {
-			setIsPanning(false);
-			document.body.style.cursor = 'auto';
-		}
-	}, [isPanning]);
-
 
 	const handleCanvasClick = useCallback((event) => {
 		if (!canvasRef.current || !socketRef.current || !boardInfo || event.button !== 0 || isPanning) return;
@@ -389,7 +461,49 @@ function Board() {
 		drawPixel(x, y, selectedColor);
 	}, [boardInfo, id, basePixelSize, zoomLevel, selectedColor, userData, viewPosition, isPanning, drawPixel]);
 
+	const exportToSVG = useCallback(() => {
+		if (!boardInfo || !pixelsStateRef.current) return;
 
+		const pixelSize = 10; // Taille des pixels dans le SVG
+		const width = boardInfo.width * pixelSize;
+		const height = boardInfo.height * pixelSize;
+
+		let svgContent = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`;
+
+		svgContent += `<rect width="${width}" height="${height}" fill="${COLORS[0]}"/>`;
+
+		Object.entries(pixelsStateRef.current).forEach(([key, color]) => {
+			const [x, y] = key.split('_').map(Number);
+			svgContent += `<rect x="${x * pixelSize}" y="${y * pixelSize}" width="${pixelSize}" height="${pixelSize}" fill="${color}"/>`;
+		});
+
+		svgContent += '</svg>';
+
+		const blob = new Blob([svgContent], {type: 'image/svg+xml'});
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = `pixelboard-${id}-${new Date().toISOString()}.svg`;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		URL.revokeObjectURL(url);
+	}, [boardInfo, id]);
+
+	const exportToPNG = useCallback(() => {
+		if (!canvasRef.current) return;
+
+		const dataUrl = canvasRef.current.toDataURL('image/png');
+
+		const link = document.createElement('a');
+		link.href = dataUrl;
+		link.download = `pixelboard-${id}-${new Date().toISOString()}.png`;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+	}, [id]);
+
+	// Rendu du composant
 	if (isLoading) {
 		return <div className="board-loading">Chargement du board...</div>;
 	}
@@ -444,21 +558,56 @@ function Board() {
 						</button>
 					</div>
 
+					<div className="export-controls">
+						<button onClick={exportToSVG}>Exporter SVG</button>
+						<button onClick={exportToPNG}>Exporter PNG</button>
+						<Link to={`/pixelboards/${id}/heatmap`} className="heatmap-link">
+							Voir Heatmap
+						</Link>
+					</div>
 					<canvas
 						ref={canvasRef}
 						className={`board-canvas ${isPanning ? 'panning' : ''}`}
 						style={{
 							transform: `translate(${viewPosition.x}px, ${viewPosition.y}px) scale(${zoomLevel})`,
-							transformOrigin: '0 0'
-						}}
-						onClick={handleCanvasClick}
-						onContextMenu={handleContextMenu}
-						onMouseDown={handleMouseDown}
-						onMouseMove={handleMouseMove}
-						onMouseUp={handleMouseUp}
-						onMouseLeave={handleMouseLeave}
-						onWheel={handleWheel}
-					/>
+                            transformOrigin: '0 0'
+                        }}
+                        onClick={handleCanvasClick}
+                        onContextMenu={handleContextMenu}
+                        onMouseDown={handleMouseDown}
+                        onMouseMove={(e) => {
+                            handleMouseMove(e);
+                            handleMouseHover(e);
+                        }}
+                        onMouseUp={handleMouseUp}
+                        onMouseLeave={handleCanvasMouseLeave}
+                        onWheel={handleWheel}
+                    />
+					{pixelTooltip.visible && zoomLevel >= 1.5 && (
+						<div
+							className="pixel-tooltip"
+							style={{
+								position: 'absolute',
+								left: `${pixelTooltip.mouseX}px`,
+								top: `${pixelTooltip.mouseY}px`,
+								backgroundColor: 'rgba(0, 0, 0, 0.8)',
+								color: 'white',
+								padding: '5px 8px',
+								borderRadius: '4px',
+								fontSize: '12px',
+								zIndex: 1000,
+								pointerEvents: 'none'
+							}}
+						>
+							{pixelTooltip.loading ? 'Nobody has claimed this pixel' : (
+								<>
+									Position: ({pixelTooltip.x}, {pixelTooltip.y})<br/>
+									Placed by: {pixelTooltip.author}<br/>
+									At : {new Date(pixelTooltip.timestamp).toLocaleString()}
+								</>
+							)}
+						</div>
+					)}
 				</div>
 			</div>
 		</div>
