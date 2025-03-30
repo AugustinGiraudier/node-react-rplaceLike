@@ -27,7 +27,7 @@ yarn start:api
 
 ## 🚀 Déploiement
 
-**Lien de l'application déployée** : [NetPlace](https://moustik.dev/)
+**Lien de l'application déployée** : [RPlaceLike](https://moustik.dev/)
 
 ## 🌟 Bonus ajoutés
 
