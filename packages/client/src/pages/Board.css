@@ -310,3 +310,50 @@
 .dark-theme .zoom-controls span {
 	color: #3498db;
 }
+
+.export-controls {
+    position: absolute;
+    bottom: 20px;
+    right: 10px;
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 4px;
+    z-index: 10;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.export-controls button {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    border: 1px solid #555;
+    background-color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.export-controls button:hover {
+    background-color: #f0f0f0;
+    transform: scale(1.05);
+}
+
+.export-controls button:active {
+    transform: scale(0.95);
+}
+
+.dark-theme .export-controls {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.dark-theme .export-controls button {
+    background-color: #333;
+    border-color: #555;
+    color: #f5f5f5;
+}
+
+.dark-theme .export-controls button:hover {
+    background-color: #444;
+}

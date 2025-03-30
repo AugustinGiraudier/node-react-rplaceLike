@@ -382,6 +382,48 @@ function Board() {
 		drawPixel(x, y, selectedColor);
 	}, [boardInfo, id, basePixelSize, zoomLevel, selectedColor, userData, viewPosition, isPanning, drawPixel]);
 
+	const exportToSVG = useCallback(() => {
+		if (!boardInfo || !pixelsStateRef.current) return;
+
+		const pixelSize = 10; // Taille des pixels dans le SVG
+		const width = boardInfo.width * pixelSize;
+		const height = boardInfo.height * pixelSize;
+
+		let svgContent = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`;
+
+		svgContent += `<rect width="${width}" height="${height}" fill="${COLORS[0]}"/>`;
+
+		Object.entries(pixelsStateRef.current).forEach(([key, color]) => {
+			const [x, y] = key.split('_').map(Number);
+			svgContent += `<rect x="${x * pixelSize}" y="${y * pixelSize}" width="${pixelSize}" height="${pixelSize}" fill="${color}"/>`;
+		});
+
+		svgContent += '</svg>';
+
+		const blob = new Blob([svgContent], {type: 'image/svg+xml'});
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = `pixelboard-${id}-${new Date().toISOString()}.svg`;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		URL.revokeObjectURL(url);
+	}, [boardInfo, id]);
+
+	const exportToPNG = useCallback(() => {
+		if (!canvasRef.current) return;
+
+		const dataUrl = canvasRef.current.toDataURL('image/png');
+
+		const link = document.createElement('a');
+		link.href = dataUrl;
+		link.download = `pixelboard-${id}-${new Date().toISOString()}.png`;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+	}, [id]);
+
 	// Rendu du composant
 	if (isLoading) {
 		return <div className="board-loading">Chargement du board...</div>;
@@ -431,6 +473,11 @@ function Board() {
 						<span>{Math.round(zoomLevel * 100)}%</span>
 						<button onClick={handleZoomIn} disabled={zoomLevel >= MAX_ZOOM}>+</button>
 						<button onClick={handleResetZoom}>Reset</button>
+					</div>
+
+					<div className="export-controls">
+						<button onClick={exportToSVG}>Exporter SVG</button>
+						<button onClick={exportToPNG}>Exporter PNG</button>
 					</div>
 
 					<canvas

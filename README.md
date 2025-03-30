@@ -35,6 +35,7 @@ yarn start:api
 - 🔄 **WebSockets** pour visualiser en temps réel le dessin
 - 🌡 **Heatmap** des zones les plus utilisées backend
 - ☁️ **Déploiement** de l'application sur un serveur en ligne
+- 😎 **Export** un pixelboard SVG ou PNG
 
 ## ✍️ Auteurs
 
