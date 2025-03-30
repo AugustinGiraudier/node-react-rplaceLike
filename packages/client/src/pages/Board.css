@@ -215,6 +215,7 @@
 		flex-direction: column;
 		width: 3rem;
 		margin-bottom: 0;
+		flex-wrap: nowrap;
 	}
 
 	.board-info-panel {
@@ -290,6 +291,10 @@
 /* Style du mode sombre */
 .dark-theme .zoom-controls {
 	background-color: rgba(255, 255, 255, 0.15);
+}
+
+.dark-theme .zoom-controls span {
+	color: #3498db;
 }
 
 .dark-theme .zoom-controls button {

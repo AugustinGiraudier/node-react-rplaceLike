@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import '../styles/PixelBoardModal.css';
+import '../pages/PixelBoardModal.css';
 
 const PixelBoardModal = ({ isOpen, onClose, onSubmit, initialBoard }) => {
 	const [formData, setFormData] = useState({
