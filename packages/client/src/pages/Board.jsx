@@ -1,5 +1,7 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams } from "react-router-dom";
+import { io } from 'socket.io-client';
+
 import './Board.css';
 
 const { VITE_API_URL } = import.meta.env;
@@ -12,353 +14,355 @@ const COLORS = [
 
 function Board() {
 	const { id } = useParams();
-	const [board, setBoard] = useState(null);
-	const [pixels, setPixels] = useState([]);
-	const [selectedColor, setSelectedColor] = useState(COLORS[0]);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState(null);
-	const [boardStatus, setBoardStatus] = useState('Ouvert');
-	const [remainingTime, setRemainingTime] = useState(0);
-	const [hoverInfo, setHoverInfo] = useState(null);
-	const [pixelSize, setPixelSize] = useState(15);
-	const [canvasSize, setCanvasSize] = useState(480);
-
 	const canvasRef = useRef(null);
-	const containerRef = useRef(null);
-	const hoverTimerRef = useRef(null);
-	const startTimeRef = useRef(null);
+	const socketRef = useRef(null);
+	const [selectedColor, setSelectedColor] = useState(COLORS[1]); // Par défaut, on choisit le gris clair
+	const [connectionStatus, setConnectionStatus] = useState('Disconnected');
+	const [boardInfo, setBoardInfo] = useState(null);
+	const [isLoading, setIsLoading] = useState(true);
+	const [eventLog, setEventLog] = useState([]);
+	const [userData, setUserData] = useState(null);
 
-	const BOARD_SIZE = 32;
-	const BOARD_DURATION = 3 * 60;
 
-	useEffect(() => {
-		const initializePixels = () => {
-			const newPixels = Array(BOARD_SIZE).fill().map(() =>
-				Array(BOARD_SIZE).fill().map(() => ({
-					color: '#FFFFFF',
-					lastModifiedBy: null,
-					lastModifiedAt: null,
-					cooldownUntil: null
-				}))
-			);
-			setPixels(newPixels);
-		};
+	const [viewPosition, setViewPosition] = useState({ x: 0, y: 0 });
+	const [isPanning, setIsPanning] = useState(false);
+	const [panStartPosition, setPanStartPosition] = useState({ x: 0, y: 0 });
 
-		initializePixels();
+	const pixelSize = 12;
+
+	const logEvent = useCallback((message) => {
+		setEventLog(prev => [...prev.slice(-19), { time: new Date().toLocaleTimeString(), message }]);
 	}, []);
 
 	useEffect(() => {
-		const fetchData = async () => {
+		try {
+			const userString = localStorage.getItem('user');
+			if (userString) {
+				const user = JSON.parse(userString);
+				setUserData(user);
+				logEvent(`Utilisateur ${user.username} connecté`);
+			} else {
+				logEvent("Aucun utilisateur connecté");
+			}
+		} catch (error) {
+			console.error("Erreur lors de la récupération des données utilisateur:", error);
+		}
+	}, [logEvent]);
+
+	useEffect(() => {
+		const fetchBoardData = async () => {
 			try {
-				setLoading(true);
-				const boardResponse = await fetch(`${VITE_API_URL}/boards/${id}`);
-				const boardData = await boardResponse.json();
-				setBoard(boardData);
-
-				if (boardData.pixels && boardData.pixels.length > 0) {
-					setPixels(boardData.pixels);
+				setIsLoading(true);
+				const response = await fetch(`${VITE_API_URL}/boards/${id}`);
+				if (!response.ok) {
+					throw new Error(`Échec de la récupération du board: ${response.statusText}`);
 				}
-
-				if (boardData.endDate) {
-					const endDate = new Date(boardData.endDate);
-					const now = new Date();
-
-					if (endDate <= now) {
-						setBoardStatus('Fermé');
-						setRemainingTime(0);
-					} else {
-						setBoardStatus('Ouvert');
-						setRemainingTime(Math.floor((endDate - now) / 1000));
-						startTimeRef.current = new Date();
-					}
-				} else {
-					setBoardStatus('Ouvert');
-					setRemainingTime(BOARD_DURATION);
-					startTimeRef.current = new Date();
-				}
-
-				setLoading(false);
-			} catch (err) {
-				console.error('Error fetching data:', err);
-				setError('Impossible de charger le pixel board. Veuillez réessayer plus tard.');
-				setLoading(false);
+				const data = await response.json();
+				setBoardInfo(data);
+				logEvent(`Board '${data.name}' chargé (${data.width}x${data.height})`);
+			} catch (error) {
+				console.error('Erreur lors de la récupération des données:', error);
+				logEvent(`Erreur: ${error.message}`);
+			} finally {
+				setIsLoading(false);
 			}
 		};
 
-		if (id) fetchData();
-	}, [id]);
+		fetchBoardData();
+
+		return () => {
+			if (socketRef.current) {
+				socketRef.current.disconnect();
+			}
+		};
+	}, [id, logEvent]);
 
 	useEffect(() => {
-		const timer = setInterval(() => {
-			if (boardStatus === 'Ouvert') {
-				const newRemainingTime = Math.max(0, remainingTime - 1);
-				setRemainingTime(newRemainingTime);
-
-				if (newRemainingTime === 0) {
-					setBoardStatus('Fermé');
-				}
-			}
-
-			setPixels(prevPixels => {
-				let updated = false;
-				const newPixels = prevPixels.map(row =>
-					row.map(pixel => {
-						if (pixel.cooldownUntil && pixel.cooldownUntil <= new Date()) {
-							updated = true;
-							return { ...pixel, cooldownUntil: null };
-						}
-						return pixel;
-					})
-				);
-				return updated ? newPixels : prevPixels;
-			});
-
-			if (hoverInfo && hoverInfo.cooldownUntil) {
-				setHoverInfo(prevInfo => {
-					if (prevInfo && prevInfo.cooldownUntil && prevInfo.cooldownUntil <= new Date()) {
-						return { ...prevInfo, cooldownUntil: null };
-					}
-					return prevInfo;
-				});
-			}
-		}, 1000);
-
-		return () => clearInterval(timer);
-	}, [boardStatus, remainingTime]);
-
-	useEffect(() => {
-		if (!canvasRef.current || pixels.length === 0) return;
+		if (!boardInfo || !canvasRef.current) return;
 
 		const canvas = canvasRef.current;
 		const ctx = canvas.getContext('2d');
 
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		canvas.width = boardInfo.width * pixelSize;
+		canvas.height = boardInfo.height * pixelSize;
 
-		for (let y = 0; y < pixels.length; y++) {
-			for (let x = 0; x < pixels[y].length; x++) {
-				const pixel = pixels[y][x];
-				ctx.fillStyle = pixel.color || '#FFFFFF';
-				ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+		ctx.fillStyle = COLORS[0];
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-				ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
-				ctx.strokeRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+		socketRef.current = io(VITE_API_URL);
+		const socket = socketRef.current;
 
-				if (pixel.cooldownUntil && pixel.cooldownUntil > new Date()) {
-					ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-					ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
-				}
-			}
+		socket.on('connect', () => {
+			setConnectionStatus('Connected');
+			logEvent('Connecté au serveur');
+
+			socket.emit('join-board', id);
+		});
+
+		socket.on('disconnect', () => {
+			setConnectionStatus('Disconnected');
+			logEvent('Déconnecté du serveur');
+		});
+
+		socket.on('message', (msg) => {
+			logEvent(`Serveur: ${msg}`);
+		});
+
+		socket.on('pixel-update', (data) => {
+			logEvent(`Pixel mis à jour en (${data.x},${data.y})`);
+			drawPixel(data.x, data.y, data.color);
+		});
+
+		socket.on('board-data', (data) => {
+			logEvent(`Données du board reçues: ${Object.keys(data.pixels).length} pixels`);
+			console.log('Données du board reçues:', data);
+			console.log('Région:', data.region);
+			console.log('Nombre de pixels:', Object.keys(data.pixels).length);
+			console.log('Échantillon de pixels:', Object.entries(data.pixels).slice(0, 5));
+			updateCanvasFromData(data);
+		});
+
+		socket.on('connect_error', (err) => {
+			logEvent(`Erreur de connexion: ${err.message}`);
+			setConnectionStatus('Error');
+		});
+
+		socket.on('error', (err) => {
+			logEvent(`Erreur serveur: ${err.message}`);
+		});
+	}, [boardInfo, id, logEvent]);
+
+
+	const handleContextMenu = useCallback((event) => {
+		event.preventDefault();
+	}, []);
+
+	const handleMouseDown = useCallback((event) => {
+		if (event.button === 2) { // Clic droit
+			event.preventDefault();
+			setIsPanning(true);
+			setPanStartPosition({
+				x: event.clientX - viewPosition.x,
+				y: event.clientY - viewPosition.y
+			});
 		}
+	}, [viewPosition]);
 
-		if (boardStatus === 'Fermé') {
-			ctx.fillStyle = 'rgba(200, 200, 200, 0.1)';
-			ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+	const handleMouseMove = useCallback((event) => {
+		if (!isPanning || !boardInfo || !canvasRef.current) return;
+
+		const newX = event.clientX - panStartPosition.x;
+		const newY = event.clientY - panStartPosition.y;
+
+		const canvasWidth = boardInfo.width * pixelSize;
+		const canvasHeight = boardInfo.height * pixelSize;
+		const containerRect = canvasRef.current.parentElement.getBoundingClientRect();
+
+		const maxX = containerRect.width - 10;
+		const maxY = containerRect.height - 10;
+		const minX = -canvasWidth + 10;
+		const minY = -canvasHeight + 10;
+
+		const limitedX = Math.min(maxX, Math.max(minX, newX));
+		const limitedY = Math.min(maxY, Math.max(minY, newY));
+
+		setViewPosition({
+			x: limitedX,
+			y: limitedY
+		});
+	}, [isPanning, panStartPosition, boardInfo, pixelSize]);
+
+
+	const handleMouseUp = useCallback((event) => {
+		if (event.button === 2 && isPanning) {
+			setIsPanning(false);
 		}
-	}, [pixels, boardStatus, pixelSize]);
+	}, [isPanning]);
 
-	const handleCanvasMouseMove = (e) => {
+	const handleMouseLeave = useCallback(() => {
+		if (isPanning) {
+			setIsPanning(false);
+		}
+	}, [isPanning]);
+
+	const drawPixel = useCallback((x, y, color) => {
 		if (!canvasRef.current) return;
 
-		if (hoverTimerRef.current) {
-			clearTimeout(hoverTimerRef.current);
-			hoverTimerRef.current = null;
+		const ctx = canvasRef.current.getContext('2d');
+		ctx.fillStyle = color;
+
+
+		const canvasX = x * pixelSize;
+		const canvasY = y * pixelSize;
+
+		console.log(`drawPixel - x: ${x}, y: ${y}, color: ${color}, canvasX: ${canvasX}, canvasY: ${canvasY}`);
+
+		ctx.fillRect(canvasX, canvasY, pixelSize, pixelSize);
+	}, [pixelSize]);
+
+
+	const updateCanvasFromData = useCallback((data) => {
+		if (!canvasRef.current) return;
+
+		const ctx = canvasRef.current.getContext('2d');
+
+
+		ctx.fillStyle = data.defaultColor || COLORS[0];
+		const regionX = data.region?.x || 0;
+		const regionY = data.region?.y || 0;
+		const regionWidth = data.region?.width || boardInfo?.width || 0;
+		const regionHeight = data.region?.height || boardInfo?.height || 0;
+
+		console.log(`Dessin de la région: x=${regionX}, y=${regionY}, w=${regionWidth}, h=${regionHeight}`);
+
+		ctx.fillRect(
+			regionX * pixelSize,
+			regionY * pixelSize,
+			regionWidth * pixelSize,
+			regionHeight * pixelSize
+		);
+
+
+		console.log('Dessin des pixels individuels...');
+		let pixelsDrawn = 0;
+
+		Object.entries(data.pixels || {}).forEach(([key, color]) => {
+			const [x, y] = key.split('_').map(Number);
+			drawPixel(x, y, color);
+			pixelsDrawn++;
+
+
+			if (pixelsDrawn <= 5) {
+				console.log(`Pixel dessiné: x=${x}, y=${y}, couleur=${color}`);
+			}
+		});
+
+		console.log(`Total de ${pixelsDrawn} pixels dessinés`);
+	}, [boardInfo, drawPixel, pixelSize]);
+
+
+	const handleCanvasClick = useCallback((event) => {
+		if (!canvasRef.current || !socketRef.current || !boardInfo || event.button !== 0 || isPanning) return;
+
+		if (!userData) {
+			logEvent("Erreur: Vous devez être connecté pour placer un pixel");
+			return;
 		}
 
 		const canvas = canvasRef.current;
 		const rect = canvas.getBoundingClientRect();
-		const x = Math.floor((e.clientX - rect.left) / pixelSize);
-		const y = Math.floor((e.clientY - rect.top) / pixelSize);
 
-		if (x >= 0 && x < BOARD_SIZE && y >= 0 && y < BOARD_SIZE) {
-			hoverTimerRef.current = setTimeout(() => {
-				setHoverInfo({
-					row: y,
-					col: x,
-					...pixels[y][x],
-					x: e.clientX - rect.left,
-					y: e.clientY - rect.top
-				});
-			}, 1000);
-		}
-	};
+		const x = Math.floor((event.clientX - rect.left) / pixelSize);
+		const y = Math.floor((event.clientY - rect.top) / pixelSize);
 
-	const handleCanvasMouseLeave = () => {
-		if (hoverTimerRef.current) {
-			clearTimeout(hoverTimerRef.current);
-			hoverTimerRef.current = null;
-		}
-		setHoverInfo(null);
-	};
+		console.log('Clic aux coordonnées canvas:', x, y);
+		console.log('Avec viewPosition:', viewPosition.x, viewPosition.y);
 
-	const handleCanvasClick = (e) => {
-		if (boardStatus === 'Fermé' || !canvasRef.current) return;
-
-		const canvas = canvasRef.current;
-		const rect = canvas.getBoundingClientRect();
-		const x = Math.floor((e.clientX - rect.left) / pixelSize);
-		const y = Math.floor((e.clientY - rect.top) / pixelSize);
-
-		if (x >= 0 && x < BOARD_SIZE && y >= 0 && y < BOARD_SIZE) {
-			placePixel(y, x);
-		}
-	};
-
-	const placePixel = async (row, col) => {
-		const pixel = pixels[row][col];
-
-		if (pixel.cooldownUntil && pixel.cooldownUntil > new Date()) {
+		if (x < 0 || y < 0 || x >= boardInfo.width || y >= boardInfo.height) {
+			console.log('Clic en dehors des limites du board');
 			return;
 		}
 
-		const token = localStorage.getItem('token');
-		if (!token) {
-			alert('Vous devez être connecté pour placer un pixel.');
+		logEvent(`Placement de pixel en (${x},${y}) avec la couleur ${selectedColor}`);
+
+
+		if (!userData || !userData.id) {
+			logEvent("Erreur: Vous devez être connecté pour placer un pixel");
 			return;
 		}
 
-		const userData = JSON.parse(localStorage.getItem('user') || '{}');
-		const username = userData.username || 'Utilisateur';
-
-		const newPixels = [...pixels];
-		const now = new Date();
-		const cooldownUntil = new Date(now.getTime() + 2 * 60 * 1000);
-
-		newPixels[row][col] = {
+		socketRef.current.emit('place-pixel', {
+			boardId: id,
+			x: x,
+			y: y,
 			color: selectedColor,
-			lastModifiedBy: username,
-			lastModifiedAt: now,
-			cooldownUntil: cooldownUntil
-		};
+			userId: userData.id
+		});
 
-		setPixels(newPixels);
+		drawPixel(x, y, selectedColor);
+	}, [boardInfo, drawPixel, id, pixelSize, selectedColor, logEvent, userData, viewPosition, isPanning]);
 
-		if (hoverInfo && hoverInfo.row === row && hoverInfo.col === col) {
-			setHoverInfo({
-				...hoverInfo,
-				color: selectedColor,
-				lastModifiedBy: username,
-				lastModifiedAt: now,
-				cooldownUntil: cooldownUntil
-			});
-		}
 
-		try {
-			await fetch(`${VITE_API_URL}/boards/${id}/pixel`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${token}`
-				},
-				body: JSON.stringify({
-					row,
-					col,
-					color: selectedColor
-				})
-			});
-		} catch (err) {
-			console.error('Error updating pixel:', err);
-		}
-	};
+	if (isLoading) {
+		return <div className="board-loading">Chargement du board...</div>;
+	}
 
-	const formatCooldownTime = (cooldownUntil) => {
-		if (!cooldownUntil) return null;
-
-		const now = new Date();
-		if (cooldownUntil <= now) return null;
-
-		const diffMs = cooldownUntil - now;
-		const diffSec = Math.ceil(diffMs / 1000);
-
-		if (diffSec < 60) {
-			return `${diffSec}s`;
-		} else {
-			const minutes = Math.floor(diffSec / 60);
-			const seconds = diffSec % 60;
-			return `${minutes}m ${seconds}s`;
-		}
-	};
-
-	const formatBoardTime = (seconds) => {
-		const minutes = Math.floor(seconds / 60);
-		const remainingSeconds = seconds % 60;
-		return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-	};
-
-	if (loading) return <div className="loading-container">Chargement du pixel board...</div>;
-	if (error) return <div className="error-container">{error}</div>;
+	if (!boardInfo) {
+		return <div className="board-error">Board non trouvé</div>;
+	}
 
 	return (
-		<div className="board-container">
-			<h1 className="board-title">{board ? board.name : 'Pixel Board'}</h1>
-
-			<div className="board-info">
-				{board && (
-					<div className="board-details">
-						<p>Créé par: <strong>{board.author?.username || 'Utilisateur inconnu'}</strong></p>
-						<p>Taille: 32x32</p>
-						<div className={`board-status ${boardStatus === 'Fermé' ? 'status-closed' : 'status-open'}`}>
-							<p>Statut: <strong>{boardStatus}</strong></p>
-							{boardStatus === 'Ouvert' ? (
-								<p>Temps restant: <strong>{formatBoardTime(remainingTime)}</strong></p>
-							) : (
-								<p>Le pixel board est terminé</p>
-							)}
+		<div className="board-page">
+			<div className="board-header">
+				<h2 className="board-title">{boardInfo.name}</h2>
+				<div className="board-status-container">
+					<div className={`connection-status ${connectionStatus.toLowerCase()}`}>
+						Statut: {connectionStatus}
+					</div>
+					{userData ? (
+						<div className="user-status">
+							Connecté en tant que: <strong>{userData.username}</strong>
 						</div>
-					</div>
-				)}
+					) : (
+						<div className="user-status warning">
+							Non connecté (impossible de placer des pixels)
+						</div>
+					)}
+				</div>
 			</div>
 
-			<div className="color-palette">
-				{COLORS.map((color, index) => (
-					<div
-						key={index}
-						className={`color-option ${selectedColor === color ? 'selected' : ''} ${boardStatus === 'Fermé' ? 'disabled' : ''}`}
-						style={{ backgroundColor: color }}
-						onClick={() => boardStatus === 'Ouvert' && setSelectedColor(color)}
-						title={`Couleur ${index + 1}`}
+			<div className="board-main">
+				<div className="color-palette">
+					{COLORS.map((color, index) => (
+						<div
+							key={index}
+							className={`color-option ${selectedColor === color ? 'selected' : ''}`}
+							style={{ backgroundColor: color }}
+							onClick={() => setSelectedColor(color)}
+							title={`Couleur ${index + 1}`}
+						/>
+					))}
+				</div>
+
+				<div className="canvas-container">
+					<div className="zoom-info">
+						Position: {Math.floor(-viewPosition.x / pixelSize)}, {Math.floor(-viewPosition.y / pixelSize)}
+					</div>
+					<canvas
+						ref={canvasRef}
+						className={`board-canvas ${isPanning ? 'panning' : ''}`}
+						style={{
+							transform: `translate(${viewPosition.x}px, ${viewPosition.y}px)`
+						}}
+						onClick={handleCanvasClick}
+						onContextMenu={handleContextMenu}
+						onMouseDown={handleMouseDown}
+						onMouseMove={handleMouseMove}
+						onMouseUp={handleMouseUp}
+						onMouseLeave={handleMouseLeave}
 					/>
-				))}
-			</div>
+				</div>
 
-			<div className="pixel-board-container" ref={containerRef}>
-				<canvas
-					ref={canvasRef}
-					width={canvasSize}
-					height={canvasSize}
-					className={`pixel-board-canvas ${boardStatus === 'Fermé' ? 'board-closed' : ''}`}
-					onClick={handleCanvasClick}
-					onMouseMove={handleCanvasMouseMove}
-					onMouseLeave={handleCanvasMouseLeave}
-				/>
-
-				{hoverInfo && (
-					<div className="pixel-hover-info" style={{
-						position: 'absolute',
-						left: `${hoverInfo.col * pixelSize + 20}px`,
-						top: `${hoverInfo.row * pixelSize - 60}px`
-					}}>
-						{hoverInfo.lastModifiedBy ? (
-							<>
-								<p>Placé par: <strong>{hoverInfo.lastModifiedBy}</strong></p>
-								{boardStatus === 'Ouvert' && hoverInfo.cooldownUntil && hoverInfo.cooldownUntil > new Date() ? (
-									<p>Temps restant: <strong>{formatCooldownTime(hoverInfo.cooldownUntil)}</strong></p>
-								) : (
-									boardStatus === 'Ouvert' ? <p>Disponible</p> : <p>Pixel board fermé</p>
-								)}
-							</>
-						) : (
-							<p>Pixel non modifié</p>
-						)}
+				<div className="board-info-panel">
+					<div className="event-log">
+						<h3>Journal d'événements</h3>
+						<ul>
+							{eventLog.map((event, index) => (
+								<li key={index}>
+									<span className="time">[{event.time}]</span> {event.message}
+								</li>
+							))}
+						</ul>
 					</div>
-				)}
-			</div>
 
-			<div className="board-instructions">
-				<p>Cliquez sur une couleur dans la palette, puis sur un pixel du canvas pour le colorier.</p>
-				<p>Survolez un pixel pendant 1 seconde pour voir qui l&#39;a modifié en dernier.</p>
-				{boardStatus === 'Fermé' && (
-					<p className="closed-message">Ce pixel board est maintenant fermé et ne peut plus être modifié.</p>
-				)}
+					<div className="board-details">
+						<p>Dimensions: {boardInfo.width} x {boardInfo.height}</p>
+						<p>Couleur sélectionnée: <span style={{ backgroundColor: selectedColor }} className="color-preview"></span></p>
+						<p>Position: ({Math.floor(-viewPosition.x / pixelSize)}, {Math.floor(-viewPosition.y / pixelSize)})</p>
+						<p>Mode: {isPanning ? 'Déplacement' : 'Placement de pixels'}</p>
+					</div>
+				</div>
 			</div>
 		</div>
 	);

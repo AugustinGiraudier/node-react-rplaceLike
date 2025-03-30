@@ -27,19 +27,19 @@ function Boards() {
 	return (
 		<div id="boards-container">
 		<div id="boards-list">
-		
+
 			{
 				boards.map((board) => {
 					return (
-						<BoardCard key="" name={board.name} author={board.author.username} time={"2j"} id={board._id}/>
+						<BoardCard key="" name={board.name} author={board?.author.username} time={"2j"} id={board._id}/>
 					);
 				})
 			}
-		
+
 		</div>
-		
-		
-		
+
+
+
 		</div>
 	);
 }
