@@ -9,6 +9,10 @@
 	color: #333;
 }
 
+.dark-theme .admin-dashboard h1 {
+	color: #f0f0f0;
+}
+
 .admin-actions {
 	display: flex;
 	justify-content: space-between;
@@ -64,6 +68,13 @@
 	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
+/* Added for dark theme */
+.dark-theme .filters-container {
+	background-color: #2a2a2a;
+	border-color: #444;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
 .filter-row {
 	display: flex;
 	flex-wrap: wrap;
@@ -85,12 +96,25 @@
 	font-size: 0.9rem;
 }
 
+/* Added for dark theme */
+.dark-theme .filter-group label {
+	color: #bbbbbb;
+}
+
 .filter-group input,
 .filter-group select {
 	padding: 8px 10px;
 	border-radius: 4px;
 	border: 1px solid #ddd;
 	background-color: white;
+}
+
+/* Added for dark theme */
+.dark-theme .filter-group input,
+.dark-theme .filter-group select {
+	background-color: #3a3a3a;
+	border-color: #555;
+	color: #f0f0f0;
 }
 
 .filter-group input:focus,
@@ -113,8 +137,19 @@
 	display: block;
 }
 
+/* Added for dark theme */
+.dark-theme .clear-filters-button {
+	background-color: #444;
+	color: #f0f0f0;
+}
+
 .clear-filters-button:hover {
 	background-color: #d0d0d0;
+}
+
+/* Added for dark theme */
+.dark-theme .clear-filters-button:hover {
+	background-color: #555;
 }
 
 .table-stats {
@@ -124,10 +159,20 @@
 	font-style: italic;
 }
 
+/* Added for dark theme */
+.dark-theme .table-stats {
+	color: #bbbbbb;
+}
+
 .admin-table {
 	width: 100%;
 	border-collapse: collapse;
 	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Added for dark theme */
+.dark-theme .admin-table {
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 .admin-table th,
@@ -137,14 +182,32 @@
 	border-bottom: 1px solid #ddd;
 }
 
+/* Added for dark theme */
+.dark-theme .admin-table th,
+.dark-theme .admin-table td {
+	border-bottom: 1px solid #444;
+	color: #f0f0f0;
+}
+
 .admin-table th {
 	background-color: #f8f8f8;
 	font-weight: bold;
 	color: #333;
 }
 
+/* Added for dark theme */
+.dark-theme .admin-table th {
+	background-color: #3a3a3a;
+	color: #f0f0f0;
+}
+
 .admin-table tr:hover {
 	background-color: #f5f5f5;
+}
+
+/* Updated for dark theme */
+.dark-theme .admin-table tr:hover {
+	background-color: #444;
 }
 
 .action-buttons {
@@ -194,6 +257,11 @@
 	color: #666;
 }
 
+/* Added for dark theme */
+.dark-theme .loading-container {
+	color: #bbbbbb;
+}
+
 .error-message {
 	background-color: #ffebee;
 	color: #c62828;
@@ -206,12 +274,24 @@
 	align-items: center;
 }
 
+/* Added for dark theme */
+.dark-theme .error-message {
+	background-color: rgba(198, 40, 40, 0.2);
+	color: #ff6b6b;
+	border-left: 4px solid #ff6b6b;
+}
+
 .error-message button {
 	background: none;
 	border: none;
 	color: #c62828;
 	cursor: pointer;
 	font-weight: bold;
+}
+
+/* Added for dark theme */
+.dark-theme .error-message button {
+	color: #ff6b6b;
 }
 
 .no-boards {
@@ -221,13 +301,26 @@
 	padding: 30px 0;
 }
 
-/* Status-specific styling */
+/* Added for dark theme */
+.dark-theme .no-boards {
+	color: #bbbbbb;
+}
+
+/* Status-specific styling with dark theme adjustments */
 .status-active {
 	background-color: rgba(76, 175, 80, 0.05);
 }
 
+.dark-theme .status-active {
+	background-color: rgba(76, 175, 80, 0.15);
+}
+
 .status-non-active {
 	background-color: rgba(255, 152, 0, 0.05);
+}
+
+.dark-theme .status-non-active {
+	background-color: rgba(255, 152, 0, 0.15);
 }
 
 .status-finished {
@@ -235,8 +328,17 @@
 	color: #616161;
 }
 
+.dark-theme .status-finished {
+	background-color: rgba(158, 158, 158, 0.15);
+	color: #bbbbbb;
+}
+
 .status-creating {
 	background-color: rgba(33, 150, 243, 0.05);
+}
+
+.dark-theme .status-creating {
+	background-color: rgba(33, 150, 243, 0.15);
 }
 
 .status-select {
@@ -250,11 +352,27 @@
 	border: 1px solid #4CAF50;
 }
 
+.dark-theme .status-select.status-active {
+	background-color: rgba(76, 175, 80, 0.3);
+	border: 1px solid #5cbc60;
+	color: #f0f0f0;
+}
+
 .status-select.status-non-active {
 	background-color: rgba(255, 152, 0, 0.2);
 	border: 1px solid #FF9800;
 }
 
+.dark-theme .status-select.status-non-active {
+	background-color: rgba(255, 152, 0, 0.3);
+	border: 1px solid #ffa726;
+	color: #f0f0f0;
+}
+
 .status-finished {
 	font-weight: bold;
+}
+
+.dark-theme .status-finished {
+	color: #bbbbbb;
 }

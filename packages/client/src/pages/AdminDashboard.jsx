@@ -1,7 +1,7 @@
 import {useState, useEffect} from 'react';
 import {Navigate} from 'react-router-dom';
 import PixelBoardModal from '../components/PixelBoardModal';
-import '../styles/AdminDashboard.css';
+import './AdminDashboard.css';
 
 const {VITE_API_URL} = import.meta.env;
 
