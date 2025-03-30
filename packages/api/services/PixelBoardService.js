@@ -171,8 +171,9 @@ const updatePixel = async (boardId, x, y, color, userId) => {
 
 	console.log(`Pixel index: ${pixelIndex}, Byte index: ${byteIndex}, Upper nibble: ${isUpperNibble}`);
 	console.log(`Current data at byte ${byteIndex}: ${chunk.data[byteIndex].toString(16)}`);
-
-	if (!COLOR_INDEX[color.toUpperCase()]) {
+	console.log(color.toUpperCase());
+	console.log(!COLOR_INDEX[color.toUpperCase()]);
+	if (!(color.toUpperCase() in COLOR_INDEX)) {
 		throw new Error(`Color ${color} invalid`);
 	}
 	const colorValue = COLOR_INDEX[color.toUpperCase()];
