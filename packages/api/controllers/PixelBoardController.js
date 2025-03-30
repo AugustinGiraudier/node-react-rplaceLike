@@ -96,3 +96,14 @@ exports.boardTimeLeft = async (req, res) => {
 		res.status(500).json({ message: 'Server error : ' + error });
 	}
 };
+
+exports.getUserOfLastPixelPlaced = async (req, res) => {
+	try {
+		const { boardId, pixelX, pixelY } = req.params;
+		console.log(boardId,pixelX,pixelY);
+		const user = await BoardService.getUserOfLastPixelPlaced(boardId, pixelX, pixelY);
+		res.json(user);
+	} catch (error) {
+		res.status(500).json({ message: 'Server error : ' + error });
+	}
+};

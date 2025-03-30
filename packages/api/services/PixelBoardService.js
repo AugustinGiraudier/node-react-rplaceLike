@@ -35,7 +35,7 @@ const getAllBoards = async () => {
 			board.status = 'finished';
 			await board.save();
 		}
-	
+
 		board.timeBeforeEnd = (board.endingDate - new Date()) / 1000 / 60;
 	});
 
@@ -287,18 +287,18 @@ const updatePixel = async (boardId, x, y, color, userId) => {
  * @returns {Promise<boolean>} - Retourne true si l'utilisateur peut placer un pixel
  */
 async function checkPlacementDelay(userId, boardId) {
-	
+
 	// Récupérer les informations du board
 	const board = await PixelBoard.findById(boardId);
 	if (!board) {
 		throw new Error(`Board non trouvé (ID: ${boardId})`);
 	}
-	
+
 	// Vérifier si le board est actif
 	if (board.status !== 'active') {
 		throw new Error(`Ce board n'est pas actif (statut: ${board.status})`);
 	}
-	
+
 	// Récupérer le dernier placement de l'utilisateur sur ce board
 	const lastPlacement = await PixelModification.findOne({
 		userId: userId,
@@ -306,28 +306,28 @@ async function checkPlacementDelay(userId, boardId) {
 	})
 	.sort({ timestamp: -1 })
 	.lean();
-	
+
 	// Si l'utilisateur n'a jamais placé de pixel sur ce board, il peut en placer un
 	if (!lastPlacement) {
 		return true;
 	}
-		
+
 	// Calculer le temps écoulé depuis le dernier placement (en millisecondes)
 	const now = new Date();
 	const lastPlacementTime = new Date(lastPlacement.timestamp);
 	const timeElapsed = now - lastPlacementTime;
 
 	console.log(timeElapsed);
-	
+
 	// Convertir le délai de placement du board en millisecondes
 	// Supposons que placementDelay est stocké en secondes dans le schéma
 	const requiredDelay = board.placementDelay;
-	
+
 	// Vérifier si le temps écoulé est inférieur au délai requis
 	if (timeElapsed < requiredDelay) {
 		return false;
 	}
-	
+
 	// Si nous arrivons ici, l'utilisateur peut placer un pixel
 	return true;
 }
@@ -588,4 +588,18 @@ const resizeBoard = async (board, originalWidth, originalHeight) => {
 
 	await board.save();
 };
-module.exports = { getAllBoards, getBoard, createBoard, getRegion, getChunk, updatePixel,deleteBoard,boardTimeLeft,updateBoard };
+
+const getUserOfLastPixelPlaced = async (boardId, x, y) => {
+    const board = await PixelBoard.findById(boardId);
+    if (!board) throw new Error("Board not found");
+	console.log("boardId :", boardId, " x:", x, "y:", y);
+    const lastModification = await PixelModification.findOne({
+		boardId,
+		x,
+		y
+	}).sort({ timestamp: -1 }).populate('userId', "username");
+	console.log(lastModification);
+    if (!lastModification) throw new Error("No modification found for this pixel");
+    return lastModification;
+};
+module.exports = { getAllBoards, getBoard, createBoard, getRegion, getChunk, updatePixel,deleteBoard,boardTimeLeft,updateBoard,getUserOfLastPixelPlaced};
