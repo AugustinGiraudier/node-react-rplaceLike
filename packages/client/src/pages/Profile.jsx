@@ -50,22 +50,29 @@ function Profile() {
 	}, []);
 
 	const fetchUserContributions = async (userId, token) => {
-		// const { VITE_API_URL } = import.meta.env;
+		const { VITE_API_URL } = import.meta.env;
 
 		try {
-			// const response = await fetch(`${VITE_API_URL}/users/${userId}/contributions`, {
-			//   headers: { Authorization: `Bearer ${token}` }
-			// });
+			const response = await fetch(`${VITE_API_URL}/stats/user/${userId}`, {
+				headers: { Authorization: `Bearer ${token}` }
+			});
 
-			setTimeout(() => {
-				setContributions({
-					totalPixels: 42,
-					pixelBoards: [
-						{id: '1', name: 'Board 1', pixels: 15, lastContribution: '2025-03-10'},
-						{id: '2', name: 'Board 2', pixels: 27, lastContribution: '2025-03-12'}
-					]
-				});
-			}, 500);
+			if (!response.ok) {
+				throw new Error('Failed to fetch user contributions');
+			}
+
+			const data = await response.json();
+
+			setContributions({
+				totalPixels: data.totalPixelsPlaced,
+				pixelBoards: data.boardsActivity.map(board => ({
+					id: board.boardId,
+					name: board.boardName,
+					pixels: board.pixelsPlaced,
+					lastContribution: new Date(board.lastActive).toISOString().split('T')[0]
+				}))
+			});
+
 		} catch (err) {
 			console.error('Error fetching user contributions:', err);
 		}
