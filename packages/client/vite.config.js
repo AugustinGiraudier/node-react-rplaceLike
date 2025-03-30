@@ -9,5 +9,7 @@ export default defineConfig({
     port: 5173,
     allowedHosts: ['moustik.dev', 'www.moustik.dev', 'localhost'],
     cors: true
-  }
+  },
+	define: {
+		global: {}},
 });
