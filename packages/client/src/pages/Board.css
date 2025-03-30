@@ -216,6 +216,7 @@ body {
 		flex-direction: column;
 		width: 3rem;
 		margin-bottom: 0;
+		flex-wrap: nowrap;
 	}
 
 	.board-info-panel {
@@ -306,4 +307,8 @@ body {
 .dark-theme .zoom-controls button:last-child {
 	background-color: #2980b9;
 	border-color: #3498db;
+}
+
+.dark-theme .zoom-controls span {
+	color: #3498db;
 }
