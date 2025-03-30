@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { useParams } from "react-router-dom";
+import {Link, useParams} from "react-router-dom";
 import { io } from 'socket.io-client';
 
 import './Board.css';
@@ -558,13 +558,15 @@ function Board() {
 					<div className="export-controls">
 						<button onClick={exportToSVG}>Exporter SVG</button>
 						<button onClick={exportToPNG}>Exporter PNG</button>
+						<Link to={`/pixelboards/${id}/heatmap`} className="heatmap-link">
+							Voir Heatmap
+						</Link>
 					</div>
-
 					<canvas
-                        ref={canvasRef}
-                        className={`board-canvas ${isPanning ? 'panning' : ''}`}
-                        style={{
-                            transform: `translate(${viewPosition.x}px, ${viewPosition.y}px) scale(${zoomLevel})`,
+						ref={canvasRef}
+						className={`board-canvas ${isPanning ? 'panning' : ''}`}
+						style={{
+							transform: `translate(${viewPosition.x}px, ${viewPosition.y}px) scale(${zoomLevel})`,
                             transformOrigin: '0 0'
                         }}
                         onClick={handleCanvasClick}

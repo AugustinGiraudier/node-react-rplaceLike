@@ -5,7 +5,47 @@
 	text-decoration: none;
 	padding: 1rem 0;
 }
+.export-controls button:hover,
+.export-controls .heatmap-link:hover {
+	background-color: #f0f0f0;
+	transform: scale(1.05);
+}
 
+.export-controls button:active,
+.export-controls .heatmap-link:active {
+	transform: scale(0.95);
+}
+
+.export-controls .heatmap-link {
+	padding: 0.5rem 1rem;
+	border-radius: 4px;
+	border: 1px solid #555;
+	background-color: rgba(255, 255, 255, 0.9);
+	font-size: 0.9rem;
+	font-weight: bold;
+	text-decoration: none;
+	color: inherit;
+	cursor: pointer;
+	transition: background-color 0.2s, transform 0.1s;
+	display: inline-block;
+	text-align: center;
+}
+
+.dark-theme .export-controls {
+	background-color: rgba(255, 255, 255, 0.15);
+}
+
+.dark-theme .export-controls button,
+.dark-theme .export-controls .heatmap-link {
+	background-color: #333;
+	border-color: #555;
+	color: #f5f5f5;
+}
+
+.dark-theme .export-controls button:hover,
+.dark-theme .export-controls .heatmap-link:hover {
+	background-color: #444;
+}
 #boards-list {
 	width: 90%;
 	max-width: 1200px;

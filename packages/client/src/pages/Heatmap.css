@@ -1,59 +1,213 @@
-/* Ajoutez ces styles à votre fichier Board.css existant */
-
+/* Styles de base de Heatmap.css */
 .heatmap-info {
-    display: flex;
-    align-items: center;
-    font-size: 0.9rem;
-    color: #333;
-  }
-  
-  .separator {
-    margin: 0 8px;
-    color: #aaa;
-  }
-  
-  .legend {
-    background-color: white;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    margin-bottom: 10px;
-  }
-  
-  .legend-title {
-    font-weight: bold;
-    margin-bottom: 5px;
-  }
-  
-  .legend-gradient {
-    display: flex;
-    flex-direction: column;
-    margin: 5px 0;
-  }
-  
-  .gradient-bar {
-    height: 20px;
-    width: 100%;
-    border-radius: 3px;
-    background: linear-gradient(to right, rgba(200, 0, 0, 0.3), rgba(255, 0, 0, 1));
-  }
-  
-  .gradient-labels {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.8rem;
-    color: #666;
-    margin-top: 3px;
-  }
-  
-  .legend-description {
-    font-size: 0.8rem;
-    color: #666;
-    margin-top: 5px;
-  }
-  
-  .tip {
-    font-size: 0.8rem;
-    font-style: italic;
-    color: #555;
-  }
+	display: flex;
+	align-items: center;
+	font-size: 0.9rem;
+	color: #333;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.separator {
+	margin: 0 8px;
+	color: #aaa;
+}
+
+.regenerate-button {
+	margin-left: 15px;
+	padding: 5px 10px;
+	background-color: #3498db;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 0.9rem;
+	transition: background-color 0.3s;
+}
+
+.regenerate-button:hover {
+	background-color: #2980b9;
+}
+
+.regenerate-button:disabled {
+	background-color: #95a5a6;
+	cursor: wait;
+}
+
+.dark-theme .regenerate-button {
+	background-color: #2980b9;
+}
+
+.dark-theme .regenerate-button:hover {
+	background-color: #3498db;
+}
+
+.regenerating-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.5);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 10;
+}
+
+.regenerating-message {
+	background-color: white;
+	padding: 15px 20px;
+	border-radius: 5px;
+	font-weight: bold;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+	color: #333;
+}
+
+.dark-theme .regenerating-message {
+	background-color: #333;
+	color: #f5f5f5;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+.legend {
+	background-color: white;
+	padding: 10px;
+	border-radius: 5px;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+	margin-bottom: 10px;
+}
+
+.legend-title {
+	font-weight: bold;
+	margin-bottom: 5px;
+}
+
+.legend-gradient {
+	display: flex;
+	flex-direction: column;
+	margin: 5px 0;
+}
+
+.gradient-bar {
+	height: 20px;
+	width: 100%;
+	border-radius: 3px;
+	background: linear-gradient(to right, rgba(200, 0, 0, 0.3), rgba(255, 0, 0, 1));
+}
+
+.gradient-labels {
+	display: flex;
+	justify-content: space-between;
+	font-size: 0.8rem;
+	color: #666;
+	margin-top: 3px;
+}
+
+.legend-description {
+	font-size: 0.8rem;
+	color: #666;
+	margin-top: 5px;
+}
+
+.tip {
+	font-size: 0.8rem;
+	font-style: italic;
+	color: #555;
+}
+
+/* Styles améliorés pour les erreurs */
+.board-error {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	height: 60vh;
+	text-align: center;
+	padding: 20px;
+}
+
+.board-error h3 {
+	color: #F44336;
+	font-size: 1.5rem;
+	margin-bottom: 20px;
+}
+
+.board-error p {
+	margin: 5px 0 20px;
+	font-size: 16px;
+	color: #777;
+	max-width: 600px;
+}
+
+.dark-theme .board-error p {
+	color: #aaa;
+}
+
+.board-loading {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 60vh;
+	font-size: 1.5rem;
+	color: #666;
+}
+
+/* Boutons d'action dans l'écran d'erreur */
+.error-actions {
+	display: flex;
+	gap: 15px;
+	margin-top: 20px;
+}
+
+.back-to-board, .login-link {
+	display: inline-block;
+	padding: 10px 20px;
+	border-radius: 5px;
+	text-decoration: none;
+	font-weight: 500;
+	transition: background-color 0.3s, transform 0.2s;
+	margin-top: 15px;
+}
+
+.back-to-board {
+	background-color: #3498db;
+	color: white;
+}
+
+.back-to-board:hover {
+	background-color: #2980b9;
+	transform: translateY(-2px);
+}
+
+.login-link {
+	background-color: #4CAF50;
+	color: white;
+}
+
+.login-link:hover {
+	background-color: #45a049;
+	transform: translateY(-2px);
+}
+
+.dark-theme .back-to-board, .dark-theme .login-link {
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Styles pour la navigation dans le panel d'information */
+.board-info-panel .back-to-board {
+	display: block;
+	text-align: center;
+	margin-top: 20px;
+	background-color: #3498db;
+	color: white;
+	text-decoration: none;
+	padding: 8px 12px;
+	border-radius: 4px;
+	font-weight: 500;
+	transition: background-color 0.3s;
+}
+
+.board-info-panel .back-to-board:hover {
+	background-color: #2980b9;
+}

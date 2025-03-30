@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 
 import './Heatmap.css';
 
@@ -11,11 +11,12 @@ function Heatmap() {
 	const [boardInfo, setBoardInfo] = useState(null);
 	const [heatmapData, setHeatmapData] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState(null);
+	const [isRegenerating, setIsRegenerating] = useState(false);
 
-	// Modifications pour le zoom
+	// Modifications pour le zoom (même paramètres que dans Board.jsx)
 	const [zoomLevel, setZoomLevel] = useState(1);
 	const basePixelSize = 12; // Taille de base d'un pixel
-	const pixelSize = basePixelSize * zoomLevel;
 
 	// Min et max zoom
 	const MIN_ZOOM = 0.2;
@@ -31,10 +32,10 @@ function Heatmap() {
 	const getHeatColor = useCallback((count, maxCount) => {
 		// Échelle de couleur de rose clair à rouge foncé
 		if (count === 0) return 'rgba(255, 255, 255, 0)'; // Transparent pour les zones sans modifications
-		
+
 		// Normalisation du compte entre 0 et 1
 		const intensity = Math.min(count / maxCount, 1);
-		
+
 		// Génération de la couleur (rouge foncé pour les valeurs élevées)
 		return `rgba(${Math.floor(155 + 100 * (1 - intensity))}, 0, 0, ${0.3 + 0.7 * intensity})`;
 	}, []);
@@ -59,82 +60,148 @@ function Heatmap() {
 		setViewPosition({ x: 0, y: 0 });
 	}, []);
 
-	// Gestion du zoom avec la molette de la souris
+	// Nouvelle fonction handleBoardReset comme dans Board.jsx
+	const handleBoardReset = useCallback(() => {
+		const containerRect = canvasRef.current?.parentElement.getBoundingClientRect();
+		if (!containerRect || !boardInfo) return;
+
+		const centerX = (containerRect.width - boardInfo.width * basePixelSize * zoomLevel) / 2;
+		const centerY = (containerRect.height - boardInfo.height * basePixelSize * zoomLevel) / 2;
+
+		setViewPosition({
+			x: centerX > 0 ? centerX : 0,
+			y: centerY > 0 ? centerY : 0
+		});
+	}, [boardInfo, basePixelSize, zoomLevel]);
+
+	// Nouveau gestionnaire de zoom avec la molette, identique à Board.jsx
 	const handleWheel = useCallback((event) => {
-		// Récupérer la position du curseur par rapport au canvas
-		const rect = canvasRef.current.getBoundingClientRect();
-		const mouseX = event.clientX - rect.left;
-		const mouseY = event.clientY - rect.top;
+		event.preventDefault();
 
-		// Position du curseur sur le canvas réel (en tenant compte du zoom actuel)
-		const canvasX = mouseX - viewPosition.x;
-		const canvasY = mouseY - viewPosition.y;
+		const direction = event.deltaY > 0 ? -1 : 1;
+		const ZOOM_FACTOR = 0.1;
 
-		// Position du curseur en "unités de board"
-		const boardX = canvasX / pixelSize;
-		const boardY = canvasY / pixelSize;
+		const newZoom = Math.max(
+			MIN_ZOOM,
+			Math.min(MAX_ZOOM, zoomLevel * (1 + direction * ZOOM_FACTOR))
+		);
 
-		// Calcul du nouveau niveau de zoom
-		const zoomChange = event.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP;
-		const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoomLevel + zoomChange));
+		if (newZoom === zoomLevel) return;
 
-		if (newZoom !== zoomLevel) {
-			// Calculer les nouvelles coordonnées du point sous le curseur
-			const newPixelSize = basePixelSize * newZoom;
-			const newCanvasX = boardX * newPixelSize;
-			const newCanvasY = boardY * newPixelSize;
+		const mouseX = event.clientX;
+		const mouseY = event.clientY;
 
-			// Ajuster la position pour maintenir le point sous le curseur
-			const newViewX = mouseX - newCanvasX;
-			const newViewY = mouseY - newCanvasY;
+		const canvasRect = canvasRef.current.getBoundingClientRect();
 
-			setZoomLevel(newZoom);
-			setViewPosition({ x: newViewX, y: newViewY });
+		const mouseCanvasX = mouseX - canvasRect.left;
+		const mouseCanvasY = mouseY - canvasRect.top;
+
+		const newViewX = mouseX - canvasRect.left - (mouseCanvasX / zoomLevel * newZoom);
+		const newViewY = mouseY - canvasRect.top - (mouseCanvasY / zoomLevel * newZoom);
+
+		setZoomLevel(newZoom);
+		setViewPosition({
+			x: viewPosition.x + newViewX,
+			y: viewPosition.y + newViewY
+		});
+	}, [zoomLevel, viewPosition]);
+
+	// Fonction pour charger les données du board et de la heatmap
+	const fetchData = useCallback(async (regenerate = false) => {
+		try {
+			setIsLoading(true);
+			setError(null);
+
+			// Récupérer le token d'authentification
+			const token = localStorage.getItem('token');
+			const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+			console.log(`[Heatmap] Récupération des informations du board: ${VITE_API_URL}/boards/${id}`);
+			// Récupération des informations du board
+			const boardResponse = await fetch(`${VITE_API_URL}/boards/${id}`);
+
+			if (!boardResponse.ok) {
+				throw new Error(`Échec de la récupération du board: ${boardResponse.statusText}`);
+			}
+
+			const boardData = await boardResponse.json();
+			console.log(`[Heatmap] Données du board reçues:`, boardData);
+			setBoardInfo(boardData);
+
+			// Récupération des données de heatmap avec authentification
+			// Ajouter un paramètre pour forcer la régénération
+			const timestamp = Date.now(); // Cache busting
+			const regenerateParam = regenerate ? '&regenerate=true' : '';
+			const heatmapUrl = `${VITE_API_URL}/boards/${id}/heatmap?t=${timestamp}${regenerateParam}`;
+
+			console.log(`[Heatmap] Récupération des données de heatmap: ${heatmapUrl}`);
+			const heatmapResponse = await fetch(heatmapUrl, {
+				headers: headers // Inclure le token d'authentification
+			});
+
+			console.log(`[Heatmap] Réponse de la heatmap:`, heatmapResponse.status, heatmapResponse.statusText);
+
+			if (!heatmapResponse.ok) {
+				if (heatmapResponse.status === 403) {
+					throw new Error("Accès refusé à la heatmap. Vous devez être connecté ou avoir les permissions nécessaires.");
+				} else {
+					throw new Error(`Échec de la récupération de la heatmap: ${heatmapResponse.statusText}`);
+				}
+			}
+
+			const heatmapData = await heatmapResponse.json();
+			console.log(`[Heatmap] Données de heatmap reçues:`, heatmapData);
+			setHeatmapData(heatmapData);
+		} catch (error) {
+			console.error('[Heatmap] Erreur lors de la récupération des données:', error);
+			setError(error.message);
+		} finally {
+			setIsLoading(false);
+			setIsRegenerating(false);
 		}
-	}, [zoomLevel, viewPosition, pixelSize, basePixelSize]);
+	}, [id]);
+
+	// Fonction pour régénérer la heatmap
+	const regenerateHeatmap = useCallback(() => {
+		setIsRegenerating(true);
+		fetchData(true);
+	}, [fetchData]);
 
 	// Récupération des informations du board et de la heatmap
 	useEffect(() => {
-		const fetchBoardData = async () => {
-			try {
-				setIsLoading(true);
-				
-				// Récupération des informations du board
-				const boardResponse = await fetch(`${VITE_API_URL}/boards/${id}`);
-				if (!boardResponse.ok) {
-					throw new Error(`Échec de la récupération du board: ${boardResponse.statusText}`);
-				}
-				const boardData = await boardResponse.json();
-				setBoardInfo(boardData);
-				
-				// Récupération des données de heatmap
-				const heatmapResponse = await fetch(`${VITE_API_URL}/boards/${id}/heatmap`);
-				if (!heatmapResponse.ok) {
-					throw new Error(`Échec de la récupération de la heatmap: ${heatmapResponse.statusText}`);
-				}
-				const heatmapData = await heatmapResponse.json();
-				setHeatmapData(heatmapData);
-			} catch (error) {
-				console.error('Erreur lors de la récupération des données:', error);
-			} finally {
-				setIsLoading(false);
-			}
-		};
+		console.log(`[Heatmap] Composant monté avec l'ID: ${id}`);
+		console.log(`[Heatmap] URL de l'API: ${VITE_API_URL}`);
 
-		fetchBoardData();
-	}, [id]);
+		fetchData(true); // Toujours régénérer au premier chargement
+	}, [id, fetchData]);
 
 	// Dessiner la heatmap
 	useEffect(() => {
-		if (!boardInfo || !heatmapData || !canvasRef.current) return;
+		console.log('[Heatmap] useEffect pour dessiner la heatmap appelé');
+
+		if (!boardInfo || !heatmapData || !canvasRef.current) {
+			console.log('[Heatmap] Dessin impossible:', {
+				hasBoardInfo: !!boardInfo,
+				hasHeatmapData: !!heatmapData,
+				hasCanvasRef: !!canvasRef.current
+			});
+			return;
+		}
+
+		console.log('[Heatmap] Préparation du dessin avec:', {
+			boardWidth: boardInfo.width,
+			boardHeight: boardInfo.height,
+			zoomLevel,
+			pixelSize: basePixelSize,
+			heatmapDataPoints: heatmapData.heatmapData.length
+		});
 
 		const canvas = canvasRef.current;
 		const ctx = canvas.getContext('2d');
 
 		// Définir les dimensions du canvas
-		const currentPixelSize = basePixelSize * zoomLevel;
-		canvas.width = boardInfo.width * currentPixelSize;
-		canvas.height = boardInfo.height * currentPixelSize;
+		canvas.width = boardInfo.width * basePixelSize;
+		canvas.height = boardInfo.height * basePixelSize;
 
 		// Effacer le canvas
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -148,32 +215,40 @@ function Heatmap() {
 		ctx.lineWidth = 0.5;
 		for (let x = 0; x <= boardInfo.width; x++) {
 			ctx.beginPath();
-			ctx.moveTo(x * currentPixelSize, 0);
-			ctx.lineTo(x * currentPixelSize, canvas.height);
+			ctx.moveTo(x * basePixelSize, 0);
+			ctx.lineTo(x * basePixelSize, canvas.height);
 			ctx.stroke();
 		}
 		for (let y = 0; y <= boardInfo.height; y++) {
 			ctx.beginPath();
-			ctx.moveTo(0, y * currentPixelSize);
-			ctx.lineTo(canvas.width, y * currentPixelSize);
+			ctx.moveTo(0, y * basePixelSize);
+			ctx.lineTo(canvas.width, y * basePixelSize);
 			ctx.stroke();
 		}
 
-		// Dessiner les pixels de la heatmap
-		heatmapData.heatmapData.forEach(pixel => {
-			const { x, y, modificationCount } = pixel;
-			
-			// Calcul de la couleur en fonction du nombre de modifications
-			ctx.fillStyle = getHeatColor(modificationCount, heatmapData.maxModifications);
-			
-			// Dessiner le pixel
-			ctx.fillRect(
-				x * currentPixelSize,
-				y * currentPixelSize,
-				currentPixelSize,
-				currentPixelSize
-			);
-		});
+		console.log('[Heatmap] Dessin des pixels de la heatmap');
+
+		try {
+			// Dessiner les pixels de la heatmap
+			heatmapData.heatmapData.forEach(pixel => {
+				const { x, y, modificationCount } = pixel;
+
+				// Calcul de la couleur en fonction du nombre de modifications
+				ctx.fillStyle = getHeatColor(modificationCount, heatmapData.maxModifications);
+
+				// Dessiner le pixel
+				ctx.fillRect(
+					x * basePixelSize,
+					y * basePixelSize,
+					basePixelSize,
+					basePixelSize
+				);
+			});
+
+			console.log('[Heatmap] Dessin terminé avec succès');
+		} catch (error) {
+			console.error('[Heatmap] Erreur lors du dessin de la heatmap:', error);
+		}
 
 	}, [boardInfo, heatmapData, zoomLevel, basePixelSize, getHeatColor]);
 
@@ -182,68 +257,88 @@ function Heatmap() {
 		event.preventDefault();
 	}, []);
 
-	// Gestionnaire pour le début du déplacement (clic droit)
+	// Nouveau gestionnaire pour le début du déplacement (identique à Board.jsx)
 	const handleMouseDown = useCallback((event) => {
 		if (event.button === 2) { // Clic droit
 			event.preventDefault();
 			setIsPanning(true);
 			setPanStartPosition({
-				x: event.clientX - viewPosition.x,
-				y: event.clientY - viewPosition.y
+				x: event.clientX,
+				y: event.clientY
 			});
+			document.body.style.cursor = 'grabbing';
 		}
-	}, [viewPosition]);
+	}, []);
 
-	// Gestionnaire pour le déplacement de la souris pendant le panning
+	// Nouveau gestionnaire pour le déplacement de la souris (identique à Board.jsx)
 	const handleMouseMove = useCallback((event) => {
-		if (!isPanning || !boardInfo || !canvasRef.current) return;
+		if (!isPanning) return;
 
-		// Calculer la nouvelle position
-		const newX = event.clientX - panStartPosition.x;
-		const newY = event.clientY - panStartPosition.y;
-
-		// Calculer les limites pour ne pas dépasser les bords du board
-		const canvasWidth = boardInfo.width * pixelSize;
-		const canvasHeight = boardInfo.height * pixelSize;
-		const containerRect = canvasRef.current.parentElement.getBoundingClientRect();
-
-		// Limites de déplacement: on ne doit pas perdre le canvas hors vue
-		const maxX = containerRect.width - 10; // Garder au moins 10px visible
-		const maxY = containerRect.height - 10;
-		const minX = -canvasWidth + 10;
-		const minY = -canvasHeight + 10;
-
-		// Appliquer les limites
-		const limitedX = Math.min(maxX, Math.max(minX, newX));
-		const limitedY = Math.min(maxY, Math.max(minY, newY));
+		const dx = event.clientX - panStartPosition.x;
+		const dy = event.clientY - panStartPosition.y;
 
 		setViewPosition({
-			x: limitedX,
-			y: limitedY
+			x: viewPosition.x + dx,
+			y: viewPosition.y + dy
 		});
-	}, [isPanning, panStartPosition, boardInfo, pixelSize]);
 
-	// Gestionnaire pour la fin du déplacement
+		setPanStartPosition({
+			x: event.clientX,
+			y: event.clientY
+		});
+	}, [isPanning, panStartPosition, viewPosition]);
+
+	// Nouveau gestionnaire pour la fin du déplacement (identique à Board.jsx)
 	const handleMouseUp = useCallback((event) => {
 		if (event.button === 2 && isPanning) {
 			setIsPanning(false);
+			document.body.style.cursor = 'auto';
 		}
 	}, [isPanning]);
 
-	// Gestionnaire pour quitter la zone du canvas pendant le déplacement
+	// Nouveau gestionnaire pour quitter la zone du canvas (identique à Board.jsx)
 	const handleMouseLeave = useCallback(() => {
 		if (isPanning) {
 			setIsPanning(false);
+			document.body.style.cursor = 'auto';
 		}
 	}, [isPanning]);
 
 	// Rendu du composant
-	if (isLoading) {
+	if (isLoading && !isRegenerating) {
 		return <div className="board-loading">Chargement de la heatmap...</div>;
 	}
 
+	if (error) {
+		return (
+			<div className="board-error">
+				{/*eslint-disable-next-line*/}
+				<h3>Impossible d'afficher la heatmap</h3>
+				<p>{error}</p>
+				<div className="error-actions">
+					<Link to={`/pixelboards/${id}`} className="back-to-board">
+						Retour au board
+					</Link>
+					{!localStorage.getItem('token') && (
+						<Link to="/login" className="login-link">
+							Se connecter
+						</Link>
+					)}
+				</div>
+			</div>
+		);
+	}
+
 	if (!boardInfo || !heatmapData) {
-		return <div className="board-error">Heatmap unavailable</div>;
+		return (
+			<div className="board-error">
+				<h3>Heatmap unavailable</h3>
+				<p>Impossible de charger les données de la heatmap.</p>
+				<Link to={`/pixelboards/${id}`} className="back-to-board">
+					Retour au board
+				</Link>
+			</div>
+		);
 	}
 
 	return (
@@ -257,25 +352,41 @@ function Heatmap() {
 						Max par pixel: <strong>{heatmapData.maxModifications}</strong>
 						<span className="separator">|</span>
 						Généré le: <strong>{new Date(heatmapData.generatedAt).toLocaleString()}</strong>
+						<button
+							onClick={regenerateHeatmap}
+							className="regenerate-button"
+							disabled={isRegenerating}
+						>
+							{isRegenerating ? 'Régénération...' : 'Régénérer la heatmap'}
+						</button>
 					</div>
 				</div>
 			</div>
 
 			<div className="board-main">
-
 				<div className="canvas-container">
 					<div className="zoom-controls">
 						<button onClick={handleZoomOut} disabled={zoomLevel <= MIN_ZOOM}>-</button>
 						<span>{Math.round(zoomLevel * 100)}%</span>
 						<button onClick={handleZoomIn} disabled={zoomLevel >= MAX_ZOOM}>+</button>
-						<button onClick={handleResetZoom}>Reset</button>
+						<button onClick={() => {
+							handleResetZoom();
+							handleBoardReset();
+						}}>Reset</button>
 					</div>
+
+					{isRegenerating && (
+						<div className="regenerating-overlay">
+							<div className="regenerating-message">Régénération de la heatmap...</div>
+						</div>
+					)}
 
 					<canvas
 						ref={canvasRef}
 						className={`board-canvas ${isPanning ? 'panning' : ''}`}
 						style={{
-							transform: `translate(${viewPosition.x}px, ${viewPosition.y}px)`
+							transform: `translate(${viewPosition.x}px, ${viewPosition.y}px) scale(${zoomLevel})`,
+							transformOrigin: '0 0'
 						}}
 						onContextMenu={handleContextMenu}
 						onMouseDown={handleMouseDown}
@@ -287,14 +398,16 @@ function Heatmap() {
 				</div>
 
 				<div className="board-info-panel">
-
 					<div className="board-details">
 						<p>Dimensions: {boardInfo.width} x {boardInfo.height}</p>
-						<p>Position: ({Math.floor(-viewPosition.x / pixelSize)}, {Math.floor(-viewPosition.y / pixelSize)})</p>
+						<p>Position: ({Math.floor(-viewPosition.x / (basePixelSize * zoomLevel))}, {Math.floor(-viewPosition.y / (basePixelSize * zoomLevel))})</p>
 						<p>Zoom: {Math.round(zoomLevel * 100)}%</p>
 						<p>Mode: {isPanning ? 'Déplacement' : 'Visualisation'}</p>
 						<p className="tip">Astuce: Clic droit + déplacer pour naviguer</p>
 						<p className="tip">Astuce: Molette pour zoomer</p>
+						<Link to={`/pixelboards/${id}`} className="back-to-board">
+							Retour au board
+						</Link>
 					</div>
 				</div>
 			</div>
