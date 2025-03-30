@@ -141,6 +141,44 @@
   color: #e74c3c;
 }
 
+.boards-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.boards-grid a {
+  text-decoration: none;
+  display: block;
+  height: 100%;
+}
+
+.loading, .error {
+  width: 100%;
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.error {
+  color: #d9534f;
+}
+
+@media (max-width: 768px) {
+  .boards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .boards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .hero-section {
     padding: 40px 0;
