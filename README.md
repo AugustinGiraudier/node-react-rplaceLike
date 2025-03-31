@@ -15,15 +15,27 @@ C'est un projet mono-repo pour le projet PixelBoard MBDS 2025. Il contient les p
 
 Pour démarrer le projet, vous devez exécuter les commandes suivantes dans le répertoire racine du projet (dans deux terminaux séparés) :
 
-*Lancer le client React 🎨*
+*installer les dépendances 💻*
 ```sh
-yarn start:client
+yarn install
+```
+
+*Lancer la base de données Mongo 🥭*
+```sh
+docker compose up -d
 ```
 
 *Lancer l'API backend 🔌*
 ```sh
 yarn start:api
 ```
+
+*Lancer le client React 🎨*
+```sh
+yarn start:client
+```
+
+rendez vous sur le lien de développement : http://localhost:5173/
 
 ## 🚀 Déploiement
 
@@ -34,6 +46,7 @@ yarn start:api
 **Fonctionnalités supplémentaires réalisées dans le projet** :
 - 🔄 **WebSockets** pour visualiser en temps réel le dessin
 - 🌡 **Heatmap** des zones les plus utilisées backend
+- 📷 **Replay** des pixelBoards
 - ☁️ **Déploiement** de l'application sur un serveur en ligne
 - 😎 **Export** un pixelboard SVG ou PNG
 
