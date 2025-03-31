@@ -167,6 +167,8 @@ function Replay() {
 
 	// Initialisation du canvas
 	useEffect(() => {
+		console.log("[Replay] Tentative d'initialisation du canvas:", boardInfo ? "Board info disponible" : "Board info manquant", canvasRef.current ? "Canvas disponible" : "Canvas manquant");
+
 		if (!boardInfo || !canvasRef.current) {
 			console.error("nuuuul");
 			return;
@@ -202,8 +204,13 @@ function Replay() {
 			ctx.stroke();
 		}
 
-		console.log('[Replay] Canvas initialisé');
-	}, [boardInfo, basePixelSize, canvasRef.current]);
+		console.log('[Replay] Canvas initialisé avec succès', {
+			width: canvas.width,
+			height: canvas.height,
+			boardWidth: boardInfo.width,
+			boardHeight: boardInfo.height
+		});
+	}, [boardInfo, basePixelSize]); // Correction: enlevé canvasRef.current de la liste des dépendances
 
 	// Fonction de rendu du replay
 	const renderFrame = useCallback((timestamp) => {
