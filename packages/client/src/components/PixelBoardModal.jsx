@@ -3,11 +3,14 @@ import PropTypes from 'prop-types';
 import './PixelBoardModal.css';
 
 const PixelBoardModal = ({ isOpen, onClose, onSubmit, initialBoard }) => {
+
+	const [isSubmited, setIsSubmited] = useState(false);
+
 	const [formData, setFormData] = useState({
 		name: '',
 		width: 160,
 		height: 160,
-		placementDelay: 0,
+		placementDelay: 1,
 		endingDate: null
 	});
 
@@ -31,10 +34,11 @@ const PixelBoardModal = ({ isOpen, onClose, onSubmit, initialBoard }) => {
 				name: '',
 				width: 160,
 				height: 160,
-				placementDelay: 0,
+				placementDelay: 1,
 				endingDate: null
 			});
 		}
+		setIsSubmited(false);
 		setFormErrors({});
 	}, [initialBoard, isOpen]);
 
@@ -88,6 +92,8 @@ const PixelBoardModal = ({ isOpen, onClose, onSubmit, initialBoard }) => {
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
+
+		setIsSubmited(true);
 
 		if (validateForm()) {
 			onSubmit(formData);
@@ -191,12 +197,18 @@ const PixelBoardModal = ({ isOpen, onClose, onSubmit, initialBoard }) => {
 					</div>
 
 					<div className="modal-actions">
-						<button type="button" className="cancel-button" onClick={onClose}>
-							Cancel
-						</button>
-						<button type="submit" className="submit-button">
-							{isEditMode ? 'Update Board' : 'Create Board'}
-						</button>
+						{isSubmited ? (
+							<span className="modal-loader"></span>
+						) : (
+							<>
+								<button type="button" className="cancel-button" onClick={onClose}>
+									Cancel
+								</button>
+								<button type="submit" className="submit-button">
+									{isEditMode ? 'Update Board' : 'Create Board'}
+								</button>
+							</>
+						)}
 					</div>
 				</form>
 			</div>
