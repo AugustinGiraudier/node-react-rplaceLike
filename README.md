@@ -57,14 +57,14 @@ rendez vous sur le lien de développement : http://localhost:5173/
 
 * Modèle de données (Statistiques utilisateurs)
 * Authentification Jwt
-* Page profile
+* Page Profile
 * Page PixelBoard (tooltips des pixels)
 
 👤 **ESCOBAR Quentin** | GitHub: [@Moustik06](https://github.com/Moustik06) | LinkedIn: [@Quentin_ESCOBAR](https://fr.linkedin.com/in/quentin-escobar-78a544302)
 
 * Modèle de données (Boards - Chunks - Regions)
 * Websockets
-* Hébergement de la production
+* Hébergement & déploiement de la production
 * Page Admin pannel
 * Page PixelBoard (zoom - drag)
 * Images de preview des boards
@@ -82,7 +82,7 @@ rendez vous sur le lien de développement : http://localhost:5173/
 * Composants de navigation
 * Page Home
 * Page Admin pannel
-* Page profile
+* Page Profile
 * Page Register/Login
 * Page PixelBoard (Export Png/Svg) 
 

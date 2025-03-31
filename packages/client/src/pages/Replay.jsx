@@ -165,59 +165,62 @@ function Replay() {
 		};
 	}, [id, fetchData]);
 
-	// Initialisation du canvas
+	const [canvasReady, setCanvasReady] = useState(false);
+
+	// Effet pour vérifier que toutes les dépendances sont prêtes
 	useEffect(() => {
-		console.log("[Replay] Tentative d'initialisation du canvas:",
-			boardInfo ? "Board info disponible" : "Board info manquant",
-			canvasRef.current ? "Canvas disponible" : "Canvas manquant",
-			replayData ? "Replay data disponible" : "Replay data manquant");
+	  if (boardInfo && canvasRef.current) {
+		setCanvasReady(true);
+	  } else {
+		setCanvasReady(false);
+	  }
+	}, [boardInfo, canvasRef.current ? 1 : 0]);
 
-		// Ne tenter l'initialisation que si TOUTES les dépendances sont disponibles
-		if (!boardInfo || !canvasRef.current || !replayData) {
-			console.error("Impossible d'initialiser le canvas - données ou référence manquantes");
-			return;
+	// Combinons la détection de montage du canvas et l'initialisation
+	useEffect(() => {
+		// Vérifier que toutes les dépendances sont disponibles
+		if (!boardInfo || !canvasRef.current) {
+		console.log("[Replay] En attente du canvas ou des données du board...");
+		return;
 		}
-
+		
+		console.log("[Replay] Initialisation du canvas avec boardInfo et canvasRef disponibles");
+		
 		const canvas = canvasRef.current;
 		const ctx = canvas.getContext('2d');
-
+		
 		// Définir les dimensions du canvas
 		canvas.width = boardInfo.width * basePixelSize;
 		canvas.height = boardInfo.height * basePixelSize;
-
+		
 		// Effacer le canvas
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+		
 		// Remplir le fond avec une couleur claire
 		ctx.fillStyle = '#f0f0f0';
 		ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+		
 		// Dessiner la grille
 		ctx.strokeStyle = '#e0e0e0';
 		ctx.lineWidth = 0.5;
+		
 		for (let x = 0; x <= boardInfo.width; x++) {
-			ctx.beginPath();
-			ctx.moveTo(x * basePixelSize, 0);
-			ctx.lineTo(x * basePixelSize, canvas.height);
-			ctx.stroke();
+		ctx.beginPath();
+		ctx.moveTo(x * basePixelSize, 0);
+		ctx.lineTo(x * basePixelSize, canvas.height);
+		ctx.stroke();
 		}
+		
 		for (let y = 0; y <= boardInfo.height; y++) {
-			ctx.beginPath();
-			ctx.moveTo(0, y * basePixelSize);
-			ctx.lineTo(canvas.width, y * basePixelSize);
-			ctx.stroke();
+		ctx.beginPath();
+		ctx.moveTo(0, y * basePixelSize);
+		ctx.lineTo(canvas.width, y * basePixelSize);
+		ctx.stroke();
 		}
-
-		console.log('[Replay] Canvas initialisé avec succès', {
-			width: canvas.width,
-			height: canvas.height,
-			boardDimensions: `${boardInfo.width}x${boardInfo.height}`
-		});
-
-		// Si nous avons initialisé le canvas avec succès, réinitialisons également la position de vue
-		handleBoardReset();
-
-	}, [boardInfo, basePixelSize, replayData, handleBoardReset]);
+		
+		console.log('[Replay] Canvas initialisé avec succès');
+	}, [canvasReady, boardInfo, basePixelSize]);
+	
 
 	// Fonction de rendu du replay
 	const renderFrame = useCallback((timestamp) => {
