@@ -291,8 +291,10 @@ function Board() {
 						headers: {Authorization: `Bearer ${token}`}
 					});
 					const respTimeJson = await respTime.json();
-					setPlacementTimer(respTimeJson.time);
 					setCanPlacePixel(respTimeJson.can);
+					if(respTimeJson.can){
+						setPlacementTimer(respTimeJson.time);
+					}
 				}
 				const response = await query;
 				if (!response.ok) {
