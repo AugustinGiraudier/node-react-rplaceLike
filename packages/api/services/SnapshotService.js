@@ -3,8 +3,8 @@ const PixelBoard = require('../models/PixelBoard');
 const Chunk = require('../models/Chunk');
 
 // Configuration
-const MAX_SNAPSHOT_SIZE = 600; // Taille maximale du côté le plus long en pixels
-const SNAPSHOT_QUALITY = 0.8; // Qualité de l'image (0-1)
+const SNAPSHOT_SIZE = 128; // Taille fixe de la snapshot en pixels
+const SNAPSHOT_QUALITY = 1; // Qualité de l'image (0-1)
 
 // Palette de couleurs du service PixelBoardService
 const COLOR_PALETTE = [
@@ -71,20 +71,22 @@ const generateSnapshot = async (boardId, force = false) => {
 			};
 		}
 
-		// Calculer les dimensions du snapshot
-		let scale = 1;
-		if (board.width > board.height) {
-			if (board.width > MAX_SNAPSHOT_SIZE) {
-				scale = MAX_SNAPSHOT_SIZE / board.width;
-			}
-		} else {
-			if (board.height > MAX_SNAPSHOT_SIZE) {
-				scale = MAX_SNAPSHOT_SIZE / board.height;
-			}
-		}
+		// Taille fixe du canvas pour la snapshot
+		const canvasWidth = SNAPSHOT_SIZE;
+		const canvasHeight = SNAPSHOT_SIZE;
 
-		const canvasWidth = Math.ceil(board.width * scale);
-		const canvasHeight = Math.ceil(board.height * scale);
+		// Calculer les coordonnées du centre du board
+		const centerX = Math.floor(board.width / 2);
+		const centerY = Math.floor(board.height / 2);
+
+		// Calculer les coordonnées de départ pour capturer le centre du board
+		// Si le board est plus petit que SNAPSHOT_SIZE, on affichera le board entier, centré
+		const startX = Math.max(0, centerX - Math.floor(SNAPSHOT_SIZE / 2));
+		const startY = Math.max(0, centerY - Math.floor(SNAPSHOT_SIZE / 2));
+
+		// Calculer les offsets pour centrer les petits boards dans le canvas
+		const offsetX = board.width < SNAPSHOT_SIZE ? Math.floor((SNAPSHOT_SIZE - board.width) / 2) : 0;
+		const offsetY = board.height < SNAPSHOT_SIZE ? Math.floor((SNAPSHOT_SIZE - board.height) / 2) : 0;
 
 		// Créer le canvas
 		const canvas = createCanvas(canvasWidth, canvasHeight);
@@ -97,56 +99,36 @@ const generateSnapshot = async (boardId, force = false) => {
 		// Récupérer tous les chunks
 		const chunks = await Chunk.find({ boardId: board._id });
 
-		// Dessiner les pixels
-		if (scale >= 1) {
-			// Échelle 1:1 ou agrandissement - dessiner pixel par pixel
-			for (const chunk of chunks) {
-				const chunkX = chunk.x;
-				const chunkY = chunk.y;
+		// Créer un index de chunks pour une recherche plus efficace
+		const chunkMap = {};
+		for (const chunk of chunks) {
+			const key = `${chunk.x},${chunk.y}`;
+			chunkMap[key] = chunk;
+		}
 
-				for (let localY = 0; localY < board.chunkSize; localY++) {
-					for (let localX = 0; localX < board.chunkSize; localX++) {
-						const globalX = chunkX + localX;
-						const globalY = chunkY + localY;
+		// Parcourir le canvas pixel par pixel
+		for (let canvasY = 0; canvasY < canvasHeight; canvasY++) {
+			for (let canvasX = 0; canvasX < canvasWidth; canvasX++) {
+				// Calculer les coordonnées correspondantes dans le board
+				const boardX = canvasX - offsetX + startX;
+				const boardY = canvasY - offsetY + startY;
 
-						if (globalX < board.width && globalY < board.height) {
-							const pixelColor = getPixelColor(chunk.data, localX, localY, board.chunkSize);
-
-							ctx.fillStyle = pixelColor;
-							ctx.fillRect(
-								Math.floor(globalX * scale),
-								Math.floor(globalY * scale),
-								Math.ceil(scale),
-								Math.ceil(scale)
-							);
-						}
-					}
-				}
-			}
-		} else {
-			// Réduction - utiliser un échantillonnage
-			// Pour chaque pixel de destination, calculer la moyenne des pixels sources correspondants
-			const pixelWidth = 1 / scale;
-			const pixelHeight = 1 / scale;
-
-			for (let y = 0; y < canvasHeight; y++) {
-				for (let x = 0; x < canvasWidth; x++) {
-					// Calculer la région source
-					const sourceX = x / scale;
-					const sourceY = y / scale;
-
+				// Vérifier si les coordonnées sont dans les limites du board
+				if (boardX >= 0 && boardX < board.width && boardY >= 0 && boardY < board.height) {
 					// Trouver le chunk correspondant
-					const chunkX = Math.floor(sourceX / board.chunkSize) * board.chunkSize;
-					const chunkY = Math.floor(sourceY / board.chunkSize) * board.chunkSize;
+					const chunkX = Math.floor(boardX / board.chunkSize) * board.chunkSize;
+					const chunkY = Math.floor(boardY / board.chunkSize) * board.chunkSize;
 
-					const chunk = chunks.find(c => c.x === chunkX && c.y === chunkY);
+					const chunkKey = `${chunkX},${chunkY}`;
+					const chunk = chunkMap[chunkKey];
+
 					if (chunk) {
-						const localX = Math.floor(sourceX) % board.chunkSize;
-						const localY = Math.floor(sourceY) % board.chunkSize;
+						const localX = boardX % board.chunkSize;
+						const localY = boardY % board.chunkSize;
 						const pixelColor = getPixelColor(chunk.data, localX, localY, board.chunkSize);
 
 						ctx.fillStyle = pixelColor;
-						ctx.fillRect(x, y, 1, 1);
+						ctx.fillRect(canvasX, canvasY, 1, 1);
 					}
 				}
 			}
