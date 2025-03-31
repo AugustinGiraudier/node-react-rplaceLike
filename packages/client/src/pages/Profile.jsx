@@ -53,7 +53,7 @@ function Profile() {
 		const { VITE_API_URL } = import.meta.env;
 
 		try {
-			const response = await fetch(`${VITE_API_URL}/stats/user/${userId}`, {
+			const response = await fetch(`${VITE_API_URL}/stats/user`, {
 				headers: { Authorization: `Bearer ${token}` }
 			});
 
@@ -146,7 +146,7 @@ function Profile() {
 
 		try {
 			const apiUrl = import.meta.env.VITE_API_URL || '';
-			const response = await fetch(`${apiUrl}/user/${userData.id}`, {
+			const response = await fetch(`${apiUrl}/user`, {
 				method: 'PATCH',
 				headers: {
 					'Content-Type': 'application/json',

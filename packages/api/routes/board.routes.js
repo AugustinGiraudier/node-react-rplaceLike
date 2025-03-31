@@ -7,11 +7,11 @@ const router = express.Router();
 
 router.get('/', getBoards);
 router.get('/:boardId', getBoard);
-router.post('/', createBoard);
+router.post('/', mustBeAuthentified, mustBeAdmin, createBoard);
 router.get('/region/:boardId/:startX/:startY/:width/:height', getRegion);
 router.get('/chunk/:boardId/:pixelX/:pixelY', getChunk);
-router.post('/update', updatePixel);
-router.delete('/:boardId',mustBeAuthentified,mustBeAdmin, deleteBoard);
+router.post('/update', mustBeAuthentified, updatePixel);
+router.delete('/:boardId',mustBeAuthentified, mustBeAdmin, deleteBoard);
 router.post('/timeleft', boardTimeLeft);
 router.put('/:boardId', mustBeAuthentified, mustBeAdmin, updateBoard);
 router.get("/:boardId/heatmap", getHeatmap);

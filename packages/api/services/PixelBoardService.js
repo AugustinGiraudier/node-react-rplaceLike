@@ -288,7 +288,7 @@ const updatePixel = async (boardId, x, y, color, userId) => {
 	chunk.markModified('data'); // Important : MongoDB ne détecte pas les modifications dans les Buffer merci claude pour l'info
 	chunk.lastUpdated = new Date();
 	await chunk.save();
-	await addUserPixel(userId);
+	await addUserPixel(user);
 	await user.save();
 
 	await PixelModification.create({

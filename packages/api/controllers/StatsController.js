@@ -11,12 +11,12 @@ exports.getStats = async (req, res) => {
 
 exports.getUserStats = async (req, res) => {
 	try {
-		const userId = req.params.userId;
-		if (!userId) {
-			return res.status(400).json({ message: "User ID is required" });
+		const user = req.user;
+		if (!user) {
+			return res.status(400).json({ message: "User not recognized" });
 		}
 
-		const stats = await getUserStats(userId);
+		const stats = await getUserStats(user);
 		res.json(stats);
 	} catch (error) {
 		res.status(500).json({ message: "Failed to fetch user statistics: " + error.message });

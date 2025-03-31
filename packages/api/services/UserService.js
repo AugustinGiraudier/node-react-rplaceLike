@@ -28,9 +28,8 @@ const getUsers = async () => {
 	const users = await User.find();
 	return users;
 };
-const addUserPixel = async (id) => {
+const addUserPixel = async (user) => {
 	// increment pixel count
-	const user = await User.findById(id);
 	if (!user) throw new Error("User not found");
 
 	user.pixelsPlaced += 1;
