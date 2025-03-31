@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, Link } from "react-router-dom";
 import './Replay.css';
-
+import "./Board.css";
 const { VITE_API_URL } = import.meta.env;
 
 function Replay() {
@@ -11,7 +11,7 @@ function Replay() {
 	const [replayData, setReplayData] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
-	
+
 	// États pour le contrôle de lecture
 	const [isPlaying, setIsPlaying] = useState(false);
 	const [currentTime, setCurrentTime] = useState(0);
@@ -19,7 +19,7 @@ function Replay() {
 	const requestIdRef = useRef(null);
 	const startTimeRef = useRef(null);
 	const pixelsRenderedRef = useRef(0);
-	
+
 	// Modifications pour le zoom (même paramètres que dans Heatmap.jsx)
 	const [zoomLevel, setZoomLevel] = useState(1);
 	const basePixelSize = 12; // Taille de base d'un pixel
@@ -347,7 +347,7 @@ function Replay() {
 		// Dessiner les pixels jusqu'au temps actuel
 		const progress = newProgress;
 		pixelsRenderedRef.current = 0;
-		
+
 		for (let i = 0; i < replayData.length; i++) {
 			const pixel = replayData[i];
 			if (pixel.relativeTimeNormalized <= progress) {
@@ -507,14 +507,14 @@ function Replay() {
 					<div className="replay-controls">
 						<div className='replay-up'>
 							<div className="replay-buttons">
-								<button 
-									className="replay-button" 
+								<button
+									className="replay-button"
 									onClick={() => setIsPlaying(!isPlaying)}
 								>
 									{isPlaying ? '⏸️' : '▶️'}
 								</button>
-								<button 
-									className="replay-button" 
+								<button
+									className="replay-button"
 									onClick={resetReplay}
 								>
 									⏮️
@@ -522,33 +522,33 @@ function Replay() {
 							</div>
 
 							<div className="replay-speed-controls">
-								<button 
-									className={`speed-button ${duration === 10 ? 'active' : ''}`} 
+								<button
+									className={`speed-button ${duration === 10 ? 'active' : ''}`}
 									onClick={() => changeDuration(10)}
 								>
 									10s
 								</button>
-								<button 
-									className={`speed-button ${duration === 30 ? 'active' : ''}`} 
+								<button
+									className={`speed-button ${duration === 30 ? 'active' : ''}`}
 									onClick={() => changeDuration(30)}
 								>
 									30s
 								</button>
-								<button 
-									className={`speed-button ${duration === 60 ? 'active' : ''}`} 
+								<button
+									className={`speed-button ${duration === 60 ? 'active' : ''}`}
 									onClick={() => changeDuration(60)}
 								>
 									1m
 								</button>
-								<button 
-									className={`speed-button ${duration === 300 ? 'active' : ''}`} 
+								<button
+									className={`speed-button ${duration === 300 ? 'active' : ''}`}
 									onClick={() => changeDuration(300)}
 								>
 									5m
 								</button>
 							</div>
 						</div>
-							
+
 						<div className="replay-timeline-container">
 							<div className="replay-time">{formatTime(currentTime)}</div>
 							<input
@@ -562,12 +562,12 @@ function Replay() {
 							/>
 							<div className="replay-time">{formatTime(duration)}</div>
 						</div>
-							
-							
+
+
 					</div>
 				</div>
 
-			
+
 				<div className="board-info-panel replay-board-info-panel">
 					<div className="board-details replay-board-details">
 						<p>Total actions: <strong>{replayData.length}</strong></p>
