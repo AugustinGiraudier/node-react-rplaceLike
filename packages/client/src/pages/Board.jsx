@@ -320,7 +320,8 @@ function Board() {
 		return () => {
 			socket.disconnect();
 		};
-	}, [id, drawPixel, redrawCanvas]);
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [id, drawPixel]);
 
 	useEffect(() => {
 		if (initialDataLoaded && boardInfo && canvasRef.current) {
@@ -502,11 +503,11 @@ function Board() {
 
 	// Rendu du composant
 	if (isLoading) {
-		return <div className="board-loading">Chargement du board...</div>;
+		return <div className="board-loading">Loading board...</div>;
 	}
 
 	if (!boardInfo) {
-		return <div className="board-error">Board non trouvé</div>;
+		return <div className="board-error">Board not found</div>;
 	}
 
 	return (
@@ -515,15 +516,15 @@ function Board() {
 				<h2 className="board-title">{boardInfo.name}</h2>
 				<div className="board-status-container">
 					<div className={`connection-status ${connectionStatus.toLowerCase()}`}>
-						Statut: {connectionStatus}
+						Status: {connectionStatus}
 					</div>
 					{userData ? (
 						<div className="user-status">
-							Connecté en tant que: <strong>{userData.username}</strong>
+							Connected as: <strong>{userData.username}</strong>
 						</div>
 					) : (
 						<div className="user-status warning">
-							Non connecté (impossible de placer des pixels)
+							Not connected (cannot place pixels)
 						</div>
 					)}
 				</div>
@@ -556,10 +557,10 @@ function Board() {
 					</div>
 
 					<div className="export-controls">
-						<button onClick={exportToSVG}>Exporter SVG</button>
-						<button onClick={exportToPNG}>Exporter PNG</button>
+						<button onClick={exportToSVG}>Export SVG</button>
+						<button onClick={exportToPNG}>Export PNG</button>
 						<Link to={`/pixelboards/${id}/heatmap`} className="heatmap-link">
-							Voir Heatmap
+							See Heatmap
 						</Link>
 					</div>
 					<canvas
