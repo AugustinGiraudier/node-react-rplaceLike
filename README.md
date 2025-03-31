@@ -50,30 +50,48 @@ rendez vous sur le lien de développement : http://localhost:5173/
 - ☁️ **Déploiement** de l'application sur un serveur en ligne
 - 😎 **Export** un pixelboard SVG ou PNG
 
-## ✍️ Auteurs
+## ✍️ Auteurs & contributions
 
-👤 **VALLEIX Benjamin**
 
-* GitHub: [@B3njaminV](https://github.com/B3njaminV)
-* LinkedIn: [@Benjamin VALLEIX](https://www.linkedin.com/in/benjamin-valleix-27115719a)
+👤 **BOUSSIK Khalil** | GitHub: [@GearzYs](https://github.com/GearzYs)
 
-👤 **GIRAUDIER Augustin**
+* Modèle de données (Statistiques utilisateurs)
+* Authentification Jwt
+* Page profile
+* Page PixelBoard (tooltips des pixels)
 
-* GitHub: [@GIRAUDIERAugustin](https://github.com/AugustinGiraudier)
-* LinkedIn: [@Augustin_GIRAUDIER](https://fr.linkedin.com/in/augustin-giraudier)
+👤 **ESCOBAR Quentin** | GitHub: [@Moustik06](https://github.com/Moustik06) | LinkedIn: [@Quentin_ESCOBAR](https://fr.linkedin.com/in/quentin-escobar-78a544302)
 
-👤 **ESCOBAR Quentin**
+* Modèle de données (Boards - Chunks - Regions)
+* Websockets
+* Hébergement de la production
+* Page Admin pannel
+* Page PixelBoard (zoom - drag)
+* Images de preview des boards
 
-* GitHub: [@Moustik06](https://github.com/Moustik06)
-* LinkedIn: [@Quentin_ESCOBAR](https://fr.linkedin.com/in/quentin-escobar-78a544302)
+👤 **GIRAUDIER Augustin** | GitHub: [@GIRAUDIERAugustin](https://github.com/AugustinGiraudier) | LinkedIn: [@Augustin_GIRAUDIER](https://fr.linkedin.com/in/augustin-giraudier)
 
-👤 **WAUQUIER Guillaume**
+* Modèle de données (Boards - Heatmap - replay)
+* Middlewares de sécurisation des routes
+* Page Heatmap
+* Page Replay
 
-* GitHub: [@Guille-wo](https://github.com/Guille-wo)
+👤 **VALLEIX Benjamin** | GitHub: [@B3njaminV](https://github.com/B3njaminV) | LinkedIn: [@Benjamin VALLEIX](https://www.linkedin.com/in/benjamin-valleix-27115719a)
 
-👤 **BOUSSIK Khalil**
+* Modèle de données (Statistiques utilisateurs)
+* Composants de navigation
+* Page Home
+* Page Admin pannel
+* Page profile
+* Page Register/Login
+* Page PixelBoard (Export Png/Svg) 
 
-* GitHub: [@GearzYs](https://github.com/GearzYs)
+👤 **WAUQUIER Guillaume** | GitHub: [@Guille-wo](https://github.com/Guille-wo)
+
+* Modèle de données (tooltips des pixel)
+* Composants de navigation
+* Page PixelBoard (canvas & couleurs)
+* Themes clair et dark
 
 ## 🛠  Languages et Outils
 
