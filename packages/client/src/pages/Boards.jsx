@@ -41,7 +41,10 @@ function Boards() {
 
 							let timeLeftStr = "?";
 							console.log(`Time data for board ${board._id}:`, timeData);
-							if (timeData.timeleft === "Infinite") {
+
+							if (timeData.status === "finished") {
+								timeLeftStr = "Completed";
+							} else if (timeData.timeleft === "Infinite") {
 								timeLeftStr = "∞";
 							} else if (timeData.timeleft && typeof timeData.timeleft === 'object') {
 								const { days, hours } = timeData.timeleft;
