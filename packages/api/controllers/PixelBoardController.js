@@ -9,6 +9,16 @@ exports.getBoards = async (req, res) => {
 	}
 };
 
+exports.checkPlacementDelay = async (req, res) => {
+	try {
+		const { boardId } = req.params;
+		const result = await BoardService.checkPlacementDelay(req.user.id, boardId);
+		res.json(result);
+	} catch (error) {
+		res.status(500).json({ message: 'Server error : ' + error });
+	}
+};
+
 exports.getBoard = async (req, res) => {
 	try {
 		const { boardId } = req.params;

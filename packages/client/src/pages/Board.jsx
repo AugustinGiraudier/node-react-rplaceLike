@@ -283,12 +283,22 @@ function Board() {
 		const fetchBoardData = async () => {
 			try {
 				setIsLoading(true);
-				const response = await fetch(`${VITE_API_URL}/boards/${id}`);
+				const query = fetch(`${VITE_API_URL}/boards/${id}`);
+
+				const token = localStorage.getItem('token');
+				if(token){
+					const respTime = await fetch(`${VITE_API_URL}/boards/${id}/placementDelay`,{
+						headers: {Authorization: `Bearer ${token}`}
+					});
+					const respTimeJson = await respTime.json();
+					setPlacementTimer(respTimeJson.time);
+					setCanPlacePixel(respTimeJson.can);
+				}
+				const response = await query;
 				if (!response.ok) {
 					throw new Error(`Échec de la récupération du board: ${response.statusText}`);
 				}
 				const data = await response.json();
-				console.log(data.timeBeforeEnd / 60 / 24);
 				setBoardInfo(data);
 			} catch (error) {
 				console.error('Erreur lors de la récupération des données:', error);
