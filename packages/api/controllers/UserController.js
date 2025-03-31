@@ -2,10 +2,9 @@ const {updateUser, getUser,getUsers} = require("../services/UserService");
 
 exports.updateUser = async (req, res) => {
     try {
-        const {id} = req.params;
         const updates = req.body;
 
-        const user = await updateUser(id, updates);
+        const user = await updateUser(req.user, updates);
 
         res.json({success: true, user});
     } catch (error) {

@@ -14,11 +14,11 @@ const getStats = async () => {
 	};
 };
 
-const getUserStats = async (userId) => {
-	const user = await User.findById(userId);
+const getUserStats = async (user) => {
 	if (!user) {
 		throw new Error("User not found");
 	}
+	const userId = user.id;
 
 	const totalPixelsPlaced = user.pixelsPlaced;
 	const userModifications = await PixelModification.find({ userId });
