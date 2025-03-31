@@ -73,7 +73,7 @@ function Homepage() {
 				);
 
 				const active = boardsWithTimeLeft.filter(board => board.status === 'active' || !board.status);
-				const completed = boardsWithTimeLeft.filter(board => board.status === 'non-active');
+				const completed = boardsWithTimeLeft.filter(board => board.status === 'finished');
 
 				setActiveBoards(active);
 				setCompletedBoards(completed);
