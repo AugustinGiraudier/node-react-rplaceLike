@@ -320,7 +320,8 @@ function Board() {
 		return () => {
 			socket.disconnect();
 		};
-	}, [id, drawPixel, redrawCanvas]);
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [id, drawPixel]);
 
 	useEffect(() => {
 		if (initialDataLoaded && boardInfo && canvasRef.current) {
