@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, Link } from "react-router-dom";
+
+
 import './Replay.css';
 
 const { VITE_API_URL } = import.meta.env;
@@ -165,7 +167,10 @@ function Replay() {
 
 	// Initialisation du canvas
 	useEffect(() => {
-		if (!boardInfo || !canvasRef.current) return;
+		if (!boardInfo || !canvasRef.current) {
+			console.error("nuuuul");
+			return;
+		}
 
 		const canvas = canvasRef.current;
 		const ctx = canvas.getContext('2d');
@@ -198,7 +203,7 @@ function Replay() {
 		}
 
 		console.log('[Replay] Canvas initialisé');
-	}, [boardInfo, basePixelSize]);
+	}, [boardInfo, basePixelSize, canvasRef.current]);
 
 	// Fonction de rendu du replay
 	const renderFrame = useCallback((timestamp) => {
