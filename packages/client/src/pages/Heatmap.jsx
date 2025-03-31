@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, Link } from "react-router-dom";
 
+import './Replay.css';
 import './Heatmap.css';
 
 const { VITE_API_URL } = import.meta.env;
@@ -404,6 +405,9 @@ function Heatmap() {
 						<p className="tip">Tip: Scroll to zoom</p>
 						<Link to={`/pixelboards/${id}`} className="back-to-board">
 							Back to Board
+						</Link>
+						<Link to={`/pixelboards/${id}/replay`} className="back-to-board replay-heatmap-link">
+							See Replay
 						</Link>
 					</div>
 				</div>
