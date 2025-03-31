@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 
 
 import './Replay.css';
-import "./Board.css";
+
 const { VITE_API_URL } = import.meta.env;
 
 function Replay() {
