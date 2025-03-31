@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import {Link, useParams} from "react-router-dom";
 import { io } from 'socket.io-client';
 
@@ -22,7 +22,22 @@ function Board() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [userData, setUserData] = useState(null);
 	const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+	const [placementTimer, setPlacementTimer] = useState(null);
+	const [canPlacePixel, setCanPlacePixel] = useState(true); 
 
+	const formatedPlacementTimer = useMemo(() => {
+		if(placementTimer < 1000) return null;
+		// Convertir millisecondes en minutes et secondes
+		const totalSeconds = Math.floor(placementTimer / 1000);
+		const minutes = Math.floor(totalSeconds / 60);
+		const seconds = totalSeconds % 60;
+		
+		// Formater avec des zéros si nécessaire
+		const formattedMinutes = String(minutes).padStart(2, '0');
+		const formattedSeconds = String(seconds).padStart(2, '0');
+		
+		return `${formattedMinutes}:${formattedSeconds}`;
+	}, [placementTimer]);
 
 	const [zoomLevel, setZoomLevel] = useState(1);
 	const basePixelSize = 12; // Taille de base d'un pixel
@@ -268,12 +283,22 @@ function Board() {
 		const fetchBoardData = async () => {
 			try {
 				setIsLoading(true);
-				const response = await fetch(`${VITE_API_URL}/boards/${id}`);
+				const query = fetch(`${VITE_API_URL}/boards/${id}`);
+
+				const token = localStorage.getItem('token');
+				if(token){
+					const respTime = await fetch(`${VITE_API_URL}/boards/${id}/placementDelay`,{
+						headers: {Authorization: `Bearer ${token}`}
+					});
+					const respTimeJson = await respTime.json();
+					setPlacementTimer(respTimeJson.time);
+					setCanPlacePixel(respTimeJson.can);
+				}
+				const response = await query;
 				if (!response.ok) {
 					throw new Error(`Échec de la récupération du board: ${response.statusText}`);
 				}
 				const data = await response.json();
-				console.log(data.timeBeforeEnd / 60 / 24);
 				setBoardInfo(data);
 			} catch (error) {
 				console.error('Erreur lors de la récupération des données:', error);
@@ -434,10 +459,9 @@ function Board() {
 
 
 	const handleCanvasClick = useCallback((event) => {
-        if (!isBoardActive) return;
+        if (!isBoardActive || !canPlacePixel) return;
 
 		if (!canvasRef.current || !socketRef.current || !boardInfo || event.button !== 0 || isPanning) return;
-
 
 		if (!userData) {
 			return;
@@ -477,7 +501,11 @@ function Board() {
 
 
 		drawPixel(x, y, selectedColor);
-	}, [boardInfo, id, basePixelSize, zoomLevel, selectedColor, userData, viewPosition, isPanning, drawPixel, isBoardActive]);
+		if(boardInfo.placementDelay > 100)
+			setCanPlacePixel(false);
+		setPlacementTimer(boardInfo.placementDelay);
+
+	}, [isBoardActive, canPlacePixel, boardInfo, isPanning, userData, zoomLevel, viewPosition.x, viewPosition.y, id, selectedColor, drawPixel]);
 
 	const exportToSVG = useCallback(() => {
 		if (!boardInfo || !pixelsStateRef.current) return;
@@ -521,6 +549,19 @@ function Board() {
 		document.body.removeChild(link);
 	}, [id]);
 
+	useEffect(()=>{
+		setTimeout(()=>{
+			if(!placementTimer) return;
+			else if(placementTimer <= Math.min(boardInfo?.placementDelay, 1000)){
+				setPlacementTimer(null);
+				setCanPlacePixel(true);
+			}
+			else{
+				setPlacementTimer(placementTimer - Math.min(boardInfo?.placementDelay, 1000));
+			}
+		}, Math.min(boardInfo?.placementDelay, 1000));
+	}, [boardInfo?.placementDelay, placementTimer]);
+
 	// Rendu du composant
 	if (isLoading) {
 		return <div className="board-loading">Loading board...</div>;
@@ -534,6 +575,7 @@ function Board() {
 		<div className="board-page">
 			<div className="board-header">
 				<h2 className="board-title">{boardInfo.name}</h2>
+				{formatedPlacementTimer && <div className='board-timer'>{formatedPlacementTimer}</div>}
 				<div className="board-status-container">
 					<div className={`connection-status ${connectionStatus.toLowerCase()}`}>
 						Status: {connectionStatus}
