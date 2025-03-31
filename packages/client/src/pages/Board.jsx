@@ -655,6 +655,9 @@ function Board() {
 						<Link to={`/pixelboards/${id}/heatmap`} className="heatmap-link">
 							See Heatmap
 						</Link>
+						<Link to={`/pixelboards/${id}/replay`} className="heatmap-link">
+							See Replay
+						</Link>
 					</div>
 					<canvas
 						ref={canvasRef}

@@ -567,24 +567,23 @@ function Replay() {
 					</div>
 				</div>
 
-				
-
+			
 				<div className="board-info-panel replay-board-info-panel">
 					<div className="board-details replay-board-details">
 						<p>Total actions: <strong>{replayData.length}</strong></p>
-						<p>Pixels rendus: <strong>{pixelsRenderedRef.current} / {replayData.length}</strong></p>
+						<p>Rendered pixels: <strong>{pixelsRenderedRef.current} / {replayData.length}</strong></p>
 						<p>Progression: <strong>{Math.round((currentTime / duration) * 100)}%</strong></p>
-						<p>Durée: <strong>{formatTime(duration)}</strong></p>
+						<p>Duration: <strong>{formatTime(duration)}</strong></p>
 						<p>Dimensions: {boardInfo.width} x {boardInfo.height}</p>
 						<p>Position:
 							({Math.floor(-viewPosition.x / (basePixelSize * zoomLevel))}, {Math.floor(-viewPosition.y / (basePixelSize * zoomLevel))})</p>
-						<p className="tip">Tip: Clic droit + déplacement pour naviguer</p>
-						<p className="tip">Tip: Molette pour zoomer/dézoomer</p>
+						<p className="tip">Tip: Right click + drag to pan</p>
+						<p className="tip">Tip: Scroll to zoom</p>
 						<Link to={`/pixelboards/${id}`} className="back-to-board">
-							Retour au Board
+							Back to Board
 						</Link>
 						<Link to={`/pixelboards/${id}/heatmap`} className="back-to-board replay-heatmap-link">
-							Voir la Heatmap
+							See Heatmap
 						</Link>
 					</div>
 				</div>
