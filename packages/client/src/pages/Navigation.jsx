@@ -10,6 +10,7 @@ import AdminDashboard from './AdminDashboard';
 import Boards from './Boards';
 import Board from './Board';
 import Heatmap from './Heatmap';
+import Replay from './Replay';
 
 function Navigation({ toggleTheme, darkMode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -152,6 +153,7 @@ function Navigation({ toggleTheme, darkMode }) {
 			<Route path="/pixelboards" element={<Boards />} />
 			<Route path="/pixelboards/:id" element={<Board />} />
       <Route path="/pixelboards/:id/heatmap" element={<Heatmap />} />
+      <Route path="/pixelboards/:id/replay" element={<Replay />} />
 			{/* 404 Route */}
           <Route path="*" element={
             <div style={{ textAlign: 'center', padding: '50px' }}>
