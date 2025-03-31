@@ -55,6 +55,8 @@ function Board() {
 
 	const lastBoardDataRef = useRef(null);
 
+    const isBoardActive = boardInfo?.status !== 'non-active' && connectionStatus === 'Connected';
+
 	const handleZoomIn = useCallback(() => {
 		setZoomLevel(prevZoom => {
 			const newZoom = Math.min(prevZoom + ZOOM_STEP, MAX_ZOOM);
@@ -130,7 +132,20 @@ function Board() {
 		});
 
 		console.log(`Total de ${pixelsDrawn} pixels redessinés`);
-	}, [boardInfo, zoomLevel]);
+
+        if (!isBoardActive) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.font = '24px Arial';
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.fillText(
+                boardInfo.status === 'non-active' ? 'Board Inactive' : 'Disconnected',
+                canvas.width/2,
+                canvas.height/2
+            );
+        }
+	}, [boardInfo, zoomLevel, isBoardActive]);
 
 	const debounce = (func, delay) => {
 		let debounceTimer;
@@ -173,6 +188,8 @@ function Board() {
 	}, [zoomLevel, viewPosition]);
 	const handleMouseHover = useCallback(
 		debounce(async (event) => {
+            if (!isBoardActive) return;
+
 			// Si le zoom est inférieur à 150%, ne pas afficher le tooltip
 			if (!canvasRef.current || !boardInfo || zoomLevel < 1.5) {
 				setPixelTooltip(prev => ({ ...prev, visible: false }));
@@ -225,7 +242,7 @@ function Board() {
 				console.log("Nobody claimed this pixel");
 			}
 		}, 200),
-		[boardInfo, id, basePixelSize, zoomLevel]
+		[boardInfo, id, basePixelSize, zoomLevel, isBoardActive]
 	);
 	const handleCanvasMouseLeave = useCallback(() => {
 		setPixelTooltip(prev => ({ ...prev, visible: false }));
@@ -320,7 +337,6 @@ function Board() {
 		return () => {
 			socket.disconnect();
 		};
-	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [id, drawPixel]);
 
 	useEffect(() => {
@@ -341,7 +357,7 @@ function Board() {
 
 		redrawCanvas();
 
-	}, [boardInfo, zoomLevel, redrawCanvas]);
+	}, [boardInfo, zoomLevel, redrawCanvas, connectionStatus]);
 
 
 	useEffect(() => {
@@ -359,6 +375,8 @@ function Board() {
 
 
 	const handleMouseDown = useCallback((event) => {
+        if (!isBoardActive) return;
+
 		if (event.button === 2) { // Clic droit
 			event.preventDefault();
 			setIsPanning(true);
@@ -368,7 +386,7 @@ function Board() {
 			});
 			document.body.style.cursor = 'grabbing';
 		}
-	}, []);
+	}, [isBoardActive]);
 
 	const handleMouseMove = useCallback((event) => {
 		if (!isPanning) return;
@@ -416,6 +434,8 @@ function Board() {
 
 
 	const handleCanvasClick = useCallback((event) => {
+        if (!isBoardActive) return;
+
 		if (!canvasRef.current || !socketRef.current || !boardInfo || event.button !== 0 || isPanning) return;
 
 
@@ -457,7 +477,7 @@ function Board() {
 
 
 		drawPixel(x, y, selectedColor);
-	}, [boardInfo, id, basePixelSize, zoomLevel, selectedColor, userData, viewPosition, isPanning, drawPixel]);
+	}, [boardInfo, id, basePixelSize, zoomLevel, selectedColor, userData, viewPosition, isPanning, drawPixel, isBoardActive]);
 
 	const exportToSVG = useCallback(() => {
 		if (!boardInfo || !pixelsStateRef.current) return;
@@ -531,13 +551,17 @@ function Board() {
 			</div>
 
 			<div className="board-main">
-				<div className="color-palette">
+				<div className={`color-palette ${!isBoardActive ? 'disabled' : ''}`}>
 					{COLORS.map((color, index) => (
 						<div
 							key={index}
-							className={`color-option ${selectedColor === color ? 'selected' : ''}`}
-							style={{ backgroundColor: color }}
-							onClick={() => setSelectedColor(color)}
+							className={`color-option ${selectedColor === color ? 'selected' : ''} ${!isBoardActive ? 'disabled' : ''}`}
+							style={{
+                                backgroundColor: color,
+                                cursor: isBoardActive ? 'pointer' : 'not-allowed',
+                                opacity: isBoardActive ? 1 : 0.5
+                            }}
+							onClick={() => isBoardActive && setSelectedColor(color)}
 							title={`Couleur ${index + 1}`}
 						/>
 					))}
@@ -565,10 +589,11 @@ function Board() {
 					</div>
 					<canvas
 						ref={canvasRef}
-						className={`board-canvas ${isPanning ? 'panning' : ''}`}
+						className={`board-canvas ${isPanning ? 'panning' : ''} ${!isBoardActive ? 'inactive' : ''}`}
 						style={{
 							transform: `translate(${viewPosition.x}px, ${viewPosition.y}px) scale(${zoomLevel})`,
-                            transformOrigin: '0 0'
+                            transformOrigin: '0 0',
+                            cursor: !isBoardActive ? 'not-allowed' : (isPanning ? 'grabbing' : 'crosshair')
                         }}
                         onClick={handleCanvasClick}
                         onContextMenu={handleContextMenu}
