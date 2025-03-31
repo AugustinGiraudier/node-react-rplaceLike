@@ -393,17 +393,17 @@ function Heatmap() {
 
 				<div className="board-info-panel">
 					<div className="board-details">
-						<p>Total des modifications: <strong>{heatmapData.totalModifications}</strong></p>
-						<p>Max par pixel: <strong>{heatmapData.maxModifications}</strong></p>
-						<p>Généré le: <strong>{new Date(heatmapData.generatedAt).toLocaleString()}</strong></p>
+						<p>Total modifications: <strong>{heatmapData.totalModifications}</strong></p>
+						<p>Max per pixel: <strong>{heatmapData.maxModifications}</strong></p>
+						<p>Generated on: <strong>{new Date(heatmapData.generatedAt).toLocaleString()}</strong></p>
 						<p>Dimensions: {boardInfo.width} x {boardInfo.height}</p>
 						<p>Position:
 							({Math.floor(-viewPosition.x / (basePixelSize * zoomLevel))}, {Math.floor(-viewPosition.y / (basePixelSize * zoomLevel))})</p>
-						<p>Mode: {isPanning ? 'Déplacement' : 'Visualisation'}</p>
-						<p className="tip">Astuce: Clic droit + déplacer pour naviguer</p>
-						<p className="tip">Astuce: Molette pour zoomer</p>
+						<p>Mode: {isPanning ? 'Panning' : 'Viewing'}</p>
+						<p className="tip">Tip: Right click + drag to pan</p>
+						<p className="tip">Tip: Scroll to zoom</p>
 						<Link to={`/pixelboards/${id}`} className="back-to-board">
-							Retour au board
+							Back to Board
 						</Link>
 					</div>
 				</div>

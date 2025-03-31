@@ -23,7 +23,7 @@ function Board() {
 	const [userData, setUserData] = useState(null);
 	const [initialDataLoaded, setInitialDataLoaded] = useState(false);
 	const [placementTimer, setPlacementTimer] = useState(null);
-	const [canPlacePixel, setCanPlacePixel] = useState(true); 
+	const [canPlacePixel, setCanPlacePixel] = useState(true);
 
 	const formatedPlacementTimer = useMemo(() => {
 		if(placementTimer < 1000) return null;
@@ -31,11 +31,11 @@ function Board() {
 		const totalSeconds = Math.floor(placementTimer / 1000);
 		const minutes = Math.floor(totalSeconds / 60);
 		const seconds = totalSeconds % 60;
-		
+
 		// Formater avec des zéros si nécessaire
 		const formattedMinutes = String(minutes).padStart(2, '0');
 		const formattedSeconds = String(seconds).padStart(2, '0');
-		
+
 		return `${formattedMinutes}:${formattedSeconds}`;
 	}, [placementTimer]);
 
@@ -70,7 +70,13 @@ function Board() {
 
 	const lastBoardDataRef = useRef(null);
 
-    const isBoardActive = boardInfo?.status !== 'non-active' && connectionStatus === 'Connected';
+    const isBoardActive = boardInfo?.status !== 'non-active' && boardInfo?.status !== 'finished' && connectionStatus === 'Connected';
+
+    const getBoardStatusMessage = () => {
+        if (boardInfo?.status === 'non-active') return 'Board Inactive';
+        if (boardInfo?.status === 'finished') return 'Board Finished';
+        return 'Disconnected';
+    };
 
 	const handleZoomIn = useCallback(() => {
 		setZoomLevel(prevZoom => {
@@ -155,12 +161,12 @@ function Board() {
             ctx.fillStyle = 'white';
             ctx.textAlign = 'center';
             ctx.fillText(
-                boardInfo.status === 'non-active' ? 'Board Inactive' : 'Disconnected',
+                getBoardStatusMessage(),
                 canvas.width/2,
                 canvas.height/2
             );
         }
-	}, [boardInfo, zoomLevel, isBoardActive]);
+	}, [boardInfo, zoomLevel, isBoardActive, getBoardStatusMessage]);
 
 	const debounce = (func, delay) => {
 		let debounceTimer;
@@ -203,7 +209,7 @@ function Board() {
 	}, [zoomLevel, viewPosition]);
 	const handleMouseHover = useCallback(
 		debounce(async (event) => {
-            if (!isBoardActive) return;
+            if (boardInfo?.status === 'non-active' || connectionStatus !== 'Connected') return;
 
 			// Si le zoom est inférieur à 150%, ne pas afficher le tooltip
 			if (!canvasRef.current || !boardInfo || zoomLevel < 1.5) {
@@ -257,7 +263,7 @@ function Board() {
 				console.log("Nobody claimed this pixel");
 			}
 		}, 200),
-		[boardInfo, id, basePixelSize, zoomLevel, isBoardActive]
+		[boardInfo, id, basePixelSize, zoomLevel, connectionStatus]
 	);
 	const handleCanvasMouseLeave = useCallback(() => {
 		setPixelTooltip(prev => ({ ...prev, visible: false }));
@@ -400,7 +406,7 @@ function Board() {
 
 
 	const handleMouseDown = useCallback((event) => {
-        if (!isBoardActive) return;
+        if (boardInfo?.status === 'non-active' || connectionStatus !== 'Connected') return;
 
 		if (event.button === 2) { // Clic droit
 			event.preventDefault();
@@ -411,7 +417,7 @@ function Board() {
 			});
 			document.body.style.cursor = 'grabbing';
 		}
-	}, [isBoardActive]);
+	}, [boardInfo?.status, connectionStatus]);
 
 	const handleMouseMove = useCallback((event) => {
 		if (!isPanning) return;
@@ -574,7 +580,10 @@ function Board() {
 	return (
 		<div className="board-page">
 			<div className="board-header">
-				<h2 className="board-title">{boardInfo.name}</h2>
+				<h2 className="board-title">
+                    {boardInfo.name}
+                    {boardInfo.status === 'finished' && <span className="board-status-badge finished"> (Finished)</span>}
+                </h2>
 				{formatedPlacementTimer && <div className='board-timer'>{formatedPlacementTimer}</div>}
 				<div className="board-status-container">
 					<div className={`connection-status ${connectionStatus.toLowerCase()}`}>
