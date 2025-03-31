@@ -120,7 +120,7 @@ function Board() {
 	}, [basePixelSize]);
 
 
-	const redrawCanvas = useCallback(() => {
+	const redrawCanvas = useCallback((forExport = false) => {
 		if (!canvasRef.current || !boardInfo) return;
 
 		const canvas = canvasRef.current;
@@ -154,7 +154,7 @@ function Board() {
 
 		console.log(`Total de ${pixelsDrawn} pixels redessinés`);
 
-        if (!isBoardActive) {
+        if (!forExport && !isBoardActive) {
             ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.font = '24px Arial';
@@ -545,17 +545,33 @@ function Board() {
 	}, [boardInfo, id]);
 
 	const exportToPNG = useCallback(() => {
-		if (!canvasRef.current) return;
+		if (!canvasRef.current || !boardInfo) return;
 
-		const dataUrl = canvasRef.current.toDataURL('image/png');
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = boardInfo.width * basePixelSize;
+        tempCanvas.height = boardInfo.height * basePixelSize;
+        const tempCtx = tempCanvas.getContext('2d');
 
-		const link = document.createElement('a');
-		link.href = dataUrl;
-		link.download = `pixelboard-${id}-${new Date().toISOString()}.png`;
-		document.body.appendChild(link);
-		link.click();
-		document.body.removeChild(link);
-	}, [id]);
+        tempCtx.fillStyle = COLORS[0];
+        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+        Object.entries(pixelsStateRef.current).forEach(([key, color]) => {
+            const [x, y] = key.split('_').map(Number);
+            const canvasX = x * basePixelSize;
+            const canvasY = y * basePixelSize;
+
+            tempCtx.fillStyle = color;
+            tempCtx.fillRect(canvasX, canvasY, basePixelSize, basePixelSize);
+        });
+
+        const dataUrl = tempCanvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = `pixelboard-${id}-${new Date().toISOString()}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+	}, [id, boardInfo, basePixelSize]);
 
 	useEffect(()=>{
 		setTimeout(()=>{
