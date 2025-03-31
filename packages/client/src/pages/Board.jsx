@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import {Link, useParams} from "react-router-dom";
 import { io } from 'socket.io-client';
 
@@ -22,7 +22,22 @@ function Board() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [userData, setUserData] = useState(null);
 	const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+	const [placementTimer, setPlacementTimer] = useState(null);
+	const [canPlacePixel, setCanPlacePixel] = useState(true); 
 
+	const formatedPlacementTimer = useMemo(() => {
+		if(placementTimer < 1000) return null;
+		// Convertir millisecondes en minutes et secondes
+		const totalSeconds = Math.floor(placementTimer / 1000);
+		const minutes = Math.floor(totalSeconds / 60);
+		const seconds = totalSeconds % 60;
+		
+		// Formater avec des zéros si nécessaire
+		const formattedMinutes = String(minutes).padStart(2, '0');
+		const formattedSeconds = String(seconds).padStart(2, '0');
+		
+		return `${formattedMinutes}:${formattedSeconds}`;
+	}, [placementTimer]);
 
 	const [zoomLevel, setZoomLevel] = useState(1);
 	const basePixelSize = 12; // Taille de base d'un pixel
@@ -54,6 +69,8 @@ function Board() {
 
 
 	const lastBoardDataRef = useRef(null);
+
+    const isBoardActive = boardInfo?.status !== 'non-active' && connectionStatus === 'Connected';
 
 	const handleZoomIn = useCallback(() => {
 		setZoomLevel(prevZoom => {
@@ -130,7 +147,20 @@ function Board() {
 		});
 
 		console.log(`Total de ${pixelsDrawn} pixels redessinés`);
-	}, [boardInfo, zoomLevel]);
+
+        if (!isBoardActive) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.font = '24px Arial';
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.fillText(
+                boardInfo.status === 'non-active' ? 'Board Inactive' : 'Disconnected',
+                canvas.width/2,
+                canvas.height/2
+            );
+        }
+	}, [boardInfo, zoomLevel, isBoardActive]);
 
 	const debounce = (func, delay) => {
 		let debounceTimer;
@@ -173,6 +203,8 @@ function Board() {
 	}, [zoomLevel, viewPosition]);
 	const handleMouseHover = useCallback(
 		debounce(async (event) => {
+            if (!isBoardActive) return;
+
 			// Si le zoom est inférieur à 150%, ne pas afficher le tooltip
 			if (!canvasRef.current || !boardInfo || zoomLevel < 1.5) {
 				setPixelTooltip(prev => ({ ...prev, visible: false }));
@@ -225,7 +257,7 @@ function Board() {
 				console.log("Nobody claimed this pixel");
 			}
 		}, 200),
-		[boardInfo, id, basePixelSize, zoomLevel]
+		[boardInfo, id, basePixelSize, zoomLevel, isBoardActive]
 	);
 	const handleCanvasMouseLeave = useCallback(() => {
 		setPixelTooltip(prev => ({ ...prev, visible: false }));
@@ -251,12 +283,22 @@ function Board() {
 		const fetchBoardData = async () => {
 			try {
 				setIsLoading(true);
-				const response = await fetch(`${VITE_API_URL}/boards/${id}`);
+				const query = fetch(`${VITE_API_URL}/boards/${id}`);
+
+				const token = localStorage.getItem('token');
+				if(token){
+					const respTime = await fetch(`${VITE_API_URL}/boards/${id}/placementDelay`,{
+						headers: {Authorization: `Bearer ${token}`}
+					});
+					const respTimeJson = await respTime.json();
+					setPlacementTimer(respTimeJson.time);
+					setCanPlacePixel(respTimeJson.can);
+				}
+				const response = await query;
 				if (!response.ok) {
 					throw new Error(`Échec de la récupération du board: ${response.statusText}`);
 				}
 				const data = await response.json();
-				console.log(data.timeBeforeEnd / 60 / 24);
 				setBoardInfo(data);
 			} catch (error) {
 				console.error('Erreur lors de la récupération des données:', error);
@@ -323,7 +365,7 @@ function Board() {
 		return () => {
 			socket.disconnect();
 		};
-	}, [id, drawPixel, redrawCanvas]);
+	}, [id, drawPixel]);
 
 	useEffect(() => {
 		if (initialDataLoaded && boardInfo && canvasRef.current) {
@@ -343,7 +385,7 @@ function Board() {
 
 		redrawCanvas();
 
-	}, [boardInfo, zoomLevel, redrawCanvas]);
+	}, [boardInfo, zoomLevel, redrawCanvas, connectionStatus]);
 
 
 	useEffect(() => {
@@ -361,6 +403,8 @@ function Board() {
 
 
 	const handleMouseDown = useCallback((event) => {
+        if (!isBoardActive) return;
+
 		if (event.button === 2) { // Clic droit
 			event.preventDefault();
 			setIsPanning(true);
@@ -370,7 +414,7 @@ function Board() {
 			});
 			document.body.style.cursor = 'grabbing';
 		}
-	}, []);
+	}, [isBoardActive]);
 
 	const handleMouseMove = useCallback((event) => {
 		if (!isPanning) return;
@@ -418,8 +462,9 @@ function Board() {
 
 
 	const handleCanvasClick = useCallback((event) => {
-		if (!canvasRef.current || !socketRef.current || !boardInfo || event.button !== 0 || isPanning) return;
+        if (!isBoardActive || !canPlacePixel) return;
 
+		if (!canvasRef.current || !socketRef.current || !boardInfo || event.button !== 0 || isPanning) return;
 
 		if (!userData) {
 			return;
@@ -459,7 +504,11 @@ function Board() {
 
 
 		drawPixel(x, y, selectedColor);
-	}, [boardInfo, id, basePixelSize, zoomLevel, selectedColor, userData, viewPosition, isPanning, drawPixel]);
+		if(boardInfo.placementDelay > 100)
+			setCanPlacePixel(false);
+		setPlacementTimer(boardInfo.placementDelay);
+
+	}, [isBoardActive, canPlacePixel, boardInfo, isPanning, userData, zoomLevel, viewPosition.x, viewPosition.y, id, selectedColor, drawPixel]);
 
 	const exportToSVG = useCallback(() => {
 		if (!boardInfo || !pixelsStateRef.current) return;
@@ -503,43 +552,61 @@ function Board() {
 		document.body.removeChild(link);
 	}, [id]);
 
+	useEffect(()=>{
+		setTimeout(()=>{
+			if(!placementTimer) return;
+			else if(placementTimer <= Math.min(boardInfo?.placementDelay, 1000)){
+				setPlacementTimer(null);
+				setCanPlacePixel(true);
+			}
+			else{
+				setPlacementTimer(placementTimer - Math.min(boardInfo?.placementDelay, 1000));
+			}
+		}, Math.min(boardInfo?.placementDelay, 1000));
+	}, [boardInfo?.placementDelay, placementTimer]);
+
 	// Rendu du composant
 	if (isLoading) {
-		return <div className="board-loading">Chargement du board...</div>;
+		return <div className="board-loading">Loading board...</div>;
 	}
 
 	if (!boardInfo) {
-		return <div className="board-error">Board non trouvé</div>;
+		return <div className="board-error">Board not found</div>;
 	}
 
 	return (
 		<div className="board-page">
 			<div className="board-header">
 				<h2 className="board-title">{boardInfo.name}</h2>
+				{formatedPlacementTimer && <div className='board-timer'>{formatedPlacementTimer}</div>}
 				<div className="board-status-container">
 					<div className={`connection-status ${connectionStatus.toLowerCase()}`}>
-						Statut: {connectionStatus}
+						Status: {connectionStatus}
 					</div>
 					{userData ? (
 						<div className="user-status">
-							Connecté en tant que: <strong>{userData.username}</strong>
+							Connected as: <strong>{userData.username}</strong>
 						</div>
 					) : (
 						<div className="user-status warning">
-							Non connecté (impossible de placer des pixels)
+							Not connected (cannot place pixels)
 						</div>
 					)}
 				</div>
 			</div>
 
 			<div className="board-main">
-				<div className="color-palette">
+				<div className={`color-palette ${!isBoardActive ? 'disabled' : ''}`}>
 					{COLORS.map((color, index) => (
 						<div
 							key={index}
-							className={`color-option ${selectedColor === color ? 'selected' : ''}`}
-							style={{ backgroundColor: color }}
-							onClick={() => setSelectedColor(color)}
+							className={`color-option ${selectedColor === color ? 'selected' : ''} ${!isBoardActive ? 'disabled' : ''}`}
+							style={{
+                                backgroundColor: color,
+                                cursor: isBoardActive ? 'pointer' : 'not-allowed',
+                                opacity: isBoardActive ? 1 : 0.5
+                            }}
+							onClick={() => isBoardActive && setSelectedColor(color)}
 							title={`Couleur ${index + 1}`}
 						/>
 					))}
@@ -559,18 +626,19 @@ function Board() {
 					</div>
 
 					<div className="export-controls">
-						<button onClick={exportToSVG}>Exporter SVG</button>
-						<button onClick={exportToPNG}>Exporter PNG</button>
+						<button onClick={exportToSVG}>Export SVG</button>
+						<button onClick={exportToPNG}>Export PNG</button>
 						<Link to={`/pixelboards/${id}/heatmap`} className="heatmap-link">
-							Voir Heatmap
+							See Heatmap
 						</Link>
 					</div>
 					<canvas
 						ref={canvasRef}
-						className={`board-canvas ${isPanning ? 'panning' : ''}`}
+						className={`board-canvas ${isPanning ? 'panning' : ''} ${!isBoardActive ? 'inactive' : ''}`}
 						style={{
 							transform: `translate(${viewPosition.x}px, ${viewPosition.y}px) scale(${zoomLevel})`,
-                            transformOrigin: '0 0'
+                            transformOrigin: '0 0',
+                            cursor: !isBoardActive ? 'not-allowed' : (isPanning ? 'grabbing' : 'crosshair')
                         }}
                         onClick={handleCanvasClick}
                         onContextMenu={handleContextMenu}

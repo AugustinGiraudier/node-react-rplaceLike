@@ -68,7 +68,7 @@
 .boards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 30px;
+  gap: 40px;
 }
 
 .board-preview {
@@ -77,13 +77,14 @@
   overflow: hidden;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
+  margin-bottom: 15px;
 }
 
 .board-preview:hover {
   transform: translateY(-5px);
 }
 
-.board-preview h4 {
+.board-preview-title {
   padding: 15px;
   margin: 0;
   font-size: 1.2rem;
@@ -139,6 +140,46 @@
 
 .error {
   color: #e74c3c;
+}
+
+.boards-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 40px;
+}
+
+.boards-grid a {
+  text-decoration: none;
+  display: block;
+  height: 100%;
+  margin-bottom: 15px;
+}
+
+.loading, .error {
+  width: 100%;
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.error {
+  color: #d9534f;
+}
+
+@media (max-width: 768px) {
+  .boards-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .boards-grid {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
 }
 
 @media (max-width: 768px) {

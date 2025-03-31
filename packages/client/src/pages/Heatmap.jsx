@@ -345,22 +345,6 @@ function Heatmap() {
 		<div className="board-page">
 			<div className="board-header">
 				<h2 className="board-title">Heatmap: {boardInfo.name}</h2>
-				<div className="board-status-container">
-					<div className="heatmap-info">
-						Total des modifications: <strong>{heatmapData.totalModifications}</strong>
-						<span className="separator">|</span>
-						Max par pixel: <strong>{heatmapData.maxModifications}</strong>
-						<span className="separator">|</span>
-						Généré le: <strong>{new Date(heatmapData.generatedAt).toLocaleString()}</strong>
-						<button
-							onClick={regenerateHeatmap}
-							className="regenerate-button"
-							disabled={isRegenerating}
-						>
-							{isRegenerating ? 'Régénération...' : 'Régénérer la heatmap'}
-						</button>
-					</div>
-				</div>
 			</div>
 
 			<div className="board-main">
@@ -372,8 +356,18 @@ function Heatmap() {
 						<button onClick={() => {
 							handleResetZoom();
 							handleBoardReset();
-						}}>Reset</button>
+						}}>Reset
+						</button>
 					</div>
+
+					<button
+						onClick={regenerateHeatmap}
+						className="refresh-heatmap-button"
+						disabled={isRegenerating}
+						title="Régénérer la heatmap"
+					>
+						{isRegenerating ? '⏳' : '🔄'}
+					</button>
 
 					{isRegenerating && (
 						<div className="regenerating-overlay">
@@ -399,9 +393,12 @@ function Heatmap() {
 
 				<div className="board-info-panel">
 					<div className="board-details">
+						<p>Total des modifications: <strong>{heatmapData.totalModifications}</strong></p>
+						<p>Max par pixel: <strong>{heatmapData.maxModifications}</strong></p>
+						<p>Généré le: <strong>{new Date(heatmapData.generatedAt).toLocaleString()}</strong></p>
 						<p>Dimensions: {boardInfo.width} x {boardInfo.height}</p>
-						<p>Position: ({Math.floor(-viewPosition.x / (basePixelSize * zoomLevel))}, {Math.floor(-viewPosition.y / (basePixelSize * zoomLevel))})</p>
-						<p>Zoom: {Math.round(zoomLevel * 100)}%</p>
+						<p>Position:
+							({Math.floor(-viewPosition.x / (basePixelSize * zoomLevel))}, {Math.floor(-viewPosition.y / (basePixelSize * zoomLevel))})</p>
 						<p>Mode: {isPanning ? 'Déplacement' : 'Visualisation'}</p>
 						<p className="tip">Astuce: Clic droit + déplacer pour naviguer</p>
 						<p className="tip">Astuce: Molette pour zoomer</p>

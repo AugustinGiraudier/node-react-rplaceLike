@@ -309,7 +309,7 @@ function AdminDashboard() {
 									<option value="all">All Statuses</option>
 									<option value="creating">Creating</option>
 									<option value="active">Active</option>
-									<option value="non-active">Non-active</option>
+									<option value="non-active">Not-active</option>
 									<option value="finished">Finished</option>
 								</select>
 							</div>
@@ -397,7 +397,7 @@ function AdminDashboard() {
 											className={`status-select status-${board.status}`}
 										>
 											<option value="active">Active</option>
-											<option value="non-active">Non-active</option>
+											<option value="non-active">Not-active</option>
 										</select>
 									) : (
 										<span className="status-finished">Finished</span>

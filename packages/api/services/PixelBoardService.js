@@ -204,7 +204,7 @@ const getRegion = async (boardId, startX, startY, width, height) => {
 
 const updatePixel = async (boardId, x, y, color, userId) => {
 
-	if(!await checkPlacementDelay(userId, boardId)){
+	if(!(await checkPlacementDelay(userId, boardId)).can){
 		throw new Error(`Cannot place Pixel...`);
 	};
 
@@ -288,7 +288,7 @@ const updatePixel = async (boardId, x, y, color, userId) => {
 	chunk.markModified('data'); // Important : MongoDB ne détecte pas les modifications dans les Buffer merci claude pour l'info
 	chunk.lastUpdated = new Date();
 	await chunk.save();
-	await addUserPixel(userId);
+	await addUserPixel(user);
 	await user.save();
 
 	await PixelModification.create({
@@ -333,7 +333,7 @@ async function checkPlacementDelay(userId, boardId) {
 
 	// Si l'utilisateur n'a jamais placé de pixel sur ce board, il peut en placer un
 	if (!lastPlacement) {
-		return true;
+		return {can: true, time: 0};
 	}
 
 	// Calculer le temps écoulé depuis le dernier placement (en millisecondes)
@@ -349,11 +349,11 @@ async function checkPlacementDelay(userId, boardId) {
 
 	// Vérifier si le temps écoulé est inférieur au délai requis
 	if (timeElapsed < requiredDelay) {
-		return false;
+		return {can: false, time: requiredDelay -timeElapsed};
 	}
 
 	// Si nous arrivons ici, l'utilisateur peut placer un pixel
-	return true;
+	return {can: true, time: 0};
 }
 
 // ----------- ADMIN -------------
@@ -659,5 +659,6 @@ module.exports = {
 	updateBoard,
 	regenerateSnapshot,
 	getBoardSnapshot,
-	getUserOfLastPixelPlaced
+	getUserOfLastPixelPlaced,
+	checkPlacementDelay
 };
